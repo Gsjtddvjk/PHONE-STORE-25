@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tous nos Produits - iPhone Store 25</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        .products-page { padding: 100px 0 60px; position: relative; z-index: 1; }
+        .products-header { margin-bottom: 36px; }
+        .products-header h1 { font-size: 36px; font-weight: 900; margin-bottom: 10px; letter-spacing: -1px; }
+        .products-header p { color: var(--text-secondary); font-size: 16px; }
+        .products-toolbar { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-bottom: 28px; }
+        .filter-tags { display: flex; gap: 10px; flex-wrap: wrap; flex: 1; }
+        .filter-tag {
+            padding: 10px 20px; border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            cursor: pointer; font-size: 13px; font-weight: 600;
+            transition: var(--transition); white-space: nowrap; color: var(--text-secondary);
+        }
+        .filter-tag:hover {
+            background: var(--bg-glass);
+            border-color: rgba(var(--primary-rgb), 0.5);
+            color: var(--text);
+        }
+        .filter-tag.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; border-color: transparent;
+            box-shadow: 0 4px 20px rgba(var(--primary-rgb), 0.3);
+        }
+        .products-count { font-size: 14px; color: var(--text-muted); white-space: nowrap; }
+        .sort-select {
+            padding: 10px 16px; border: 1px solid var(--border);
+            border-radius: var(--radius-xs); font-size: 13px;
+            background: var(--bg-glass); color: var(--text);
+            cursor: pointer; outline: none; font-family: inherit;
+        }
+        .sort-select:focus { border-color: rgba(var(--primary-rgb), 0.5); }
+        .sort-select option { background: var(--bg-secondary); color: var(--text); }
+        @media (max-width: 768px) {
+            .products-header h1 { font-size: 26px; }
+            .products-toolbar { flex-direction: column; align-items: stretch; }
+            .filter-tags { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 6px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-effects"><div class="bg-gradient"></div></div>
+
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">📱</span>
+                <span class="logo-text">iPhone<span class="logo-highlight">Store</span><span class="logo-num">25</span></span>
+            </a>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Rechercher un produit iPhone...">
+                <button onclick="searchProducts()"><i class="fas fa-search"></i></button>
+            </div>
+            <nav class="main-nav" id="mainNav">
+                <a href="index.html" class="nav-link">Accueil</a>
+                <a href="products.html" class="nav-link active">Produits</a>
+                <a href="admin.html" class="nav-link">Admin</a>
+            </nav>
+            <div class="header-actions">
+                <a href="admin.html" class="header-btn" title="Admin"><i class="fas fa-cog"></i></a>
+                <button class="header-btn cart-btn" onclick="openCart()">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="badge" id="cartCount">0</span>
+                </button>
+                <button class="header-btn" onclick="openWishlist()">
+                    <i class="fas fa-heart"></i>
+                    <span class="badge" id="wishlistCount">0</span>
+                </button>
+                <button class="header-btn mobile-menu" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <section class="products-page">
+        <div class="container">
+            <div class="products-header">
+                <h1>Tous nos <span class="text-gradient">Produits</span></h1>
+                <p>Découvrez toute notre collection de pièces détachées iPhone originales</p>
+            </div>
+
+            <div class="products-toolbar">
+                <div class="filter-tags" id="filterTags">
+                    <span class="filter-tag active" data-cat="all" onclick="filterProducts('all')">Tous</span>
+                    <span class="filter-tag" data-cat="telephone" onclick="filterProducts('telephone')">📱 Téléphones</span>
+                    <span class="filter-tag" data-cat="ecran" onclick="filterProducts('ecran')">🖥️ Écrans</span>
+                    <span class="filter-tag" data-cat="batterie" onclick="filterProducts('batterie')">🔋 Batteries</span>
+                    <span class="filter-tag" data-cat="camera" onclick="filterProducts('camera')">📷 Caméras</span>
+                    <span class="filter-tag" data-cat="boitier" onclick="filterProducts('boitier')">🛡️ Boîtiers</span>
+                    <span class="filter-tag" data-cat="accessoire" onclick="filterProducts('accessoire')">✨ Accessoires</span>
+                    <span class="filter-tag" data-cat="outils" onclick="filterProducts('outils')">🔧 Outils</span>
+                </div>
+                <select class="sort-select" id="sortSelect" onchange="sortProducts()">
+                    <option value="default">Trier par</option>
+                    <option value="price-asc">Prix croissant</option>
+                    <option value="price-desc">Prix décroissant</option>
+                    <option value="name-asc">Nom A-Z</option>
+                    <option value="name-desc">Nom Z-A</option>
+                    <option value="newest">Nouveautés</option>
+                </select>
+                <span class="products-count" id="productsCount"></span>
+            </div>
+
+            <div class="products-grid" id="productsGrid"></div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>Copyright © 2026 iPhone Store 25. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="sidebar" id="cartSidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-shopping-cart"></i> Panier</h3>
+            <button class="close-btn" onclick="closeCart()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="sidebar-body" id="cartItems">
+            <div class="empty-state"><i class="fas fa-shopping-basket"></i><p>Votre panier est vide</p></div>
+        </div>
+        <div class="sidebar-footer" id="cartFooter" style="display:none">
+            <div class="total"><span>Total:</span><span id="cartTotal">0 DA</span></div>
+            <button class="btn btn-primary btn-full" onclick="checkout()"><i class="fas fa-credit-card"></i> Commander</button>
+        </div>
+    </div>
+
+    <div class="sidebar" id="wishlistSidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-heart"></i> Favoris</h3>
+            <button class="close-btn" onclick="closeWishlist()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="sidebar-body" id="wishlistItems">
+            <div class="empty-state"><i class="fas fa-heart-broken"></i><p>Aucun favori</p></div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="closeAll()"></div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="fab-container">
+        <a href="https://wa.me/213770579244" target="_blank" class="fab fab-whatsapp" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://instagram.com/iphonestore25" target="_blank" class="fab fab-instagram" title="Instagram"><i class="fab fa-instagram"></i></a>
+        <button class="fab fab-top" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+    <script>
+        let currentCategory = 'all';
+        let currentSort = 'default';
+        let searchQuery = '';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const cat = params.get('cat');
+            const q = params.get('search');
+            if (cat) {
+                currentCategory = cat;
+                document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+                const tag = document.querySelector(`.filter-tag[data-cat="${cat}"]`);
+                if (tag) tag.classList.add('active');
+            }
+            if (q) {
+                searchQuery = q.toLowerCase();
+                document.getElementById('searchInput').value = q;
+            }
+            renderProductsPage(filterAndSort());
+        });
+
+        function renderProductsPage(list) {
+            const grid = document.getElementById('productsGrid');
+            const count = document.getElementById('productsCount');
+            if (!grid) return;
+
+            grid.innerHTML = '';
+            if (list.length === 0) {
+                grid.innerHTML = '<div class="empty-state-full"><i class="fas fa-box-open"></i><h3>Aucun produit trouvé</h3><p>Essayez une autre catégorie ou recherche</p></div>';
+                if (count) count.textContent = '0 produit';
+                return;
+            }
+
+            list.forEach(p => {
+                const inW = wishlist.includes(p.id);
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    ${p.badge ? `<span class="product-badge badge-${p.badge}">${p.badge === 'hot' ? '🔥 Best Seller' : p.badge === 'new' ? '✨ Nouveau' : '💰 Promo'}</span>` : ''}
+                    <div class="product-actions">
+                        <button class="action-btn ${inW ? 'wishlisted' : ''}" onclick="event.stopPropagation();toggleWishlist(${p.id});renderProductsPage(filterAndSort())"><i class="fas fa-heart"></i></button>
+                        <button class="action-btn" onclick="event.stopPropagation();window.location.href='product.html?id=${p.id}'"><i class="fas fa-eye"></i></button>
+                    </div>
+                    <div class="product-image" onclick="window.location.href='product.html?id=${p.id}'">
+                        <span class="product-emoji">${p.emoji}</span>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-cat">${categoryLabels[p.category] || p.category}</div>
+                        <div class="product-name">${p.name}</div>
+                        <div class="product-bottom">
+                            <div>
+                                <div class="product-price">${p.price.toLocaleString('fr-DZ')} DA</div>
+                                ${p.oldPrice ? `<div class="product-price-old">${p.oldPrice.toLocaleString('fr-DZ')} DA</div>` : ''}
+                            </div>
+                            <button class="add-cart-btn" onclick="event.stopPropagation();addToCart(${p.id})"><i class="fas fa-cart-plus"></i></button>
+                        </div>
+                    </div>`;
+                grid.appendChild(card);
+            });
+
+            if (count) count.textContent = list.length + ' produit' + (list.length > 1 ? 's' : '');
+        }
+
+        function filterProducts(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.filter-tag[data-cat="${cat}"]`).classList.add('active');
+            renderProductsPage(filterAndSort());
+        }
+
+        function sortProducts() {
+            currentSort = document.getElementById('sortSelect').value;
+            renderProductsPage(filterAndSort());
+        }
+
+        function filterAndSort() {
+            let list = currentCategory === 'all' ? [...products] : products.filter(p => p.category === currentCategory);
+            if (searchQuery) {
+                list = list.filter(p => p.name.toLowerCase().includes(searchQuery) || p.desc.toLowerCase().includes(searchQuery));
+            }
+            switch (currentSort) {
+                case 'price-asc': list.sort((a, b) => a.price - b.price); break;
+                case 'price-desc': list.sort((a, b) => b.price - a.price); break;
+                case 'name-asc': list.sort((a, b) => a.name.localeCompare(b.name)); break;
+                case 'name-desc': list.sort((a, b) => b.name.localeCompare(a.name)); break;
+                case 'newest': list.sort((a, b) => (b.id || 0) - (a.id || 0)); break;
+            }
+            return list;
+        }
+
+        function searchProducts() {
+            searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+            renderProductsPage(filterAndSort());
+        }
+
+        document.getElementById('searchInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter') searchProducts();
+        });
+    </script>
+</body>
+</html>

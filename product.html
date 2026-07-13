@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produit - iPhone Store 25</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        .detail-page { padding: 100px 0 60px; position: relative; z-index: 1; }
+        .breadcrumb { display: flex; gap: 8px; align-items: center; margin-bottom: 24px; font-size: 13px; color: var(--text-muted); }
+        .breadcrumb a { color: var(--primary-light); text-decoration: none; transition: var(--transition); }
+        .breadcrumb a:hover { color: var(--primary); text-decoration: underline; }
+        .detail-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+            background: var(--bg-glass); backdrop-filter: blur(20px);
+            border-radius: var(--radius); padding: 32px;
+            box-shadow: var(--shadow); border: 1px solid var(--border);
+        }
+        .detail-image {
+            background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.08), rgba(139, 92, 246, 0.05));
+            border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
+            min-height: 380px; font-size: 140px;
+        }
+        .detail-cat { font-size: 12px; color: var(--primary-light); text-transform: uppercase; font-weight: 700; letter-spacing: 1.5px; }
+        .detail-name { font-size: 28px; font-weight: 900; margin: 10px 0 14px; line-height: 1.2; }
+        .detail-price {
+            font-size: 32px; font-weight: 900;
+            background: linear-gradient(135deg, var(--primary-light), var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+        .detail-old-price { font-size: 16px; color: var(--text-muted); text-decoration: line-through; margin-bottom: 14px; }
+        .detail-stock { font-size: 14px; color: var(--accent); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+        .detail-desc { font-size: 15px; color: var(--text-secondary); line-height: 1.8; margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+        .detail-qty { display: flex; align-items: center; gap: 18px; margin-bottom: 28px; }
+        .detail-qty label { font-size: 15px; font-weight: 700; }
+        .qty-control {
+            display: flex; border: 1px solid var(--border); border-radius: var(--radius-xs); overflow: hidden;
+            background: var(--bg-glass);
+        }
+        .qty-control button {
+            width: 44px; height: 44px; background: transparent; border: none;
+            cursor: pointer; font-size: 16px; transition: var(--transition); color: var(--text-secondary);
+        }
+        .qty-control button:hover { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
+        .qty-control span { width: 56px; text-align: center; font-size: 16px; font-weight: 700; line-height: 44px; color: var(--text); }
+        .detail-actions { display: flex; gap: 14px; }
+        .detail-actions .btn { flex: 1; justify-content: center; padding: 16px; }
+        .related { padding: 60px 0; position: relative; z-index: 1; }
+        @media (max-width: 768px) {
+            .detail-grid { grid-template-columns: 1fr; padding: 24px; }
+            .detail-image { min-height: 240px; font-size: 110px; }
+            .detail-name { font-size: 22px; }
+            .detail-price { font-size: 26px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo"><span class="logo-icon">📱</span><span class="logo-text">iPhone<span class="logo-highlight">Store</span><span class="logo-num">25</span></span></a>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Rechercher...">
+                <button onclick="window.location.href='index.html'"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="header-actions">
+                <a href="admin.html" class="header-btn" title="Admin"><i class="fas fa-cog"></i></a>
+                <button class="header-btn cart-btn" onclick="openCart()"><i class="fas fa-shopping-cart"></i><span class="badge" id="cartCount">0</span></button>
+                <button class="header-btn" onclick="openWishlist()"><i class="fas fa-heart"></i><span class="badge" id="wishlistCount">0</span></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="detail-page">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="index.html">Accueil</a><span>/</span>
+                <a href="index.html#products">Produits</a><span>/</span>
+                <span id="breadcrumbName">Produit</span>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-image" id="detailImage"></div>
+                <div>
+                    <span class="detail-cat" id="detailCategory"></span>
+                    <h1 class="detail-name" id="detailName"></h1>
+                    <div class="detail-price" id="detailPrice"></div>
+                    <div class="detail-old-price" id="detailOldPrice"></div>
+                    <div class="detail-stock" id="detailStock"></div>
+                    <p class="detail-desc" id="detailDesc"></p>
+                    <div class="detail-qty">
+                        <label>Quantité:</label>
+                        <div class="qty-control">
+                            <button onclick="changeDetailQty(-1)">-</button>
+                            <span id="detailQty">1</span>
+                            <button onclick="changeDetailQty(1)">+</button>
+                        </div>
+                    </div>
+                    <div class="detail-actions">
+                        <button class="btn btn-primary" onclick="addToCartDetail()"><i class="fas fa-cart-plus"></i> Ajouter au Panier</button>
+                        <button class="btn btn-outline" id="detailWishlistBtn" onclick="toggleWishlistDetail()"><i class="fas fa-heart"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="related">
+        <div class="container">
+            <h2 class="section-title">Produits <span class="text-gradient">Similaires</span></h2>
+            <div class="products-grid" id="relatedProducts"></div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom"><p>Copyright © 2026 iPhone Store 25. Tous droits réservés.</p></div>
+        </div>
+    </footer>
+
+    <div class="sidebar" id="cartSidebar">
+        <div class="sidebar-header"><h3><i class="fas fa-shopping-cart"></i> Panier</h3><button class="close-btn" onclick="closeCart()"><i class="fas fa-times"></i></button></div>
+        <div class="sidebar-body" id="cartItems"><div class="empty-state"><i class="fas fa-shopping-basket"></i><p>Vide</p></div></div>
+        <div class="sidebar-footer" id="cartFooter" style="display:none"><div class="total"><span>Total:</span><span id="cartTotal">0 DA</span></div><button class="btn btn-primary btn-full" onclick="checkout()"><i class="fas fa-credit-card"></i> Commander</button></div>
+    </div>
+
+    <div class="sidebar" id="wishlistSidebar">
+        <div class="sidebar-header"><h3><i class="fas fa-heart"></i> Favoris</h3><button class="close-btn" onclick="closeWishlist()"><i class="fas fa-times"></i></button></div>
+        <div class="sidebar-body" id="wishlistItems"><div class="empty-state"><i class="fas fa-heart-broken"></i><p>Vide</p></div></div>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="closeAll()"></div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="fab-container">
+        <a href="https://wa.me/213770579244" target="_blank" class="fab fab-whatsapp" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://instagram.com/iphonestore25" target="_blank" class="fab fab-instagram" title="Instagram"><i class="fab fa-instagram"></i></a>
+        <button class="fab fab-top" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+    <script>
+        let currentProduct = null, detailQty = 1;
+        const catLabels = { telephone:'Téléphones', ecran:'Écrans', batterie:'Batteries', camera:'Caméras', boitier:'Boîtiers', accessoire:'Accessoires', outils:'Outils' };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const id = parseInt(new URLSearchParams(window.location.search).get('id'));
+            if (id) loadProduct(id);
+        });
+
+        function loadProduct(id) {
+            const all = JSON.parse(localStorage.getItem('ipstore25_products')) || [];
+            currentProduct = all.find(p => p.id === id);
+            if (!currentProduct) {
+                document.querySelector('.detail-page .container').innerHTML = '<div class="empty-state-full"><i class="fas fa-exclamation-triangle"></i><h3>Produit non trouvé</h3><a href="index.html" class="btn btn-primary" style="margin-top:16px"><i class="fas fa-home"></i> Retour</a></div>';
+                return;
+            }
+            document.title = currentProduct.name + ' - iPhone Store 25';
+            document.getElementById('breadcrumbName').textContent = currentProduct.name;
+            document.getElementById('detailImage').innerHTML = `<span>${currentProduct.emoji}</span>`;
+            document.getElementById('detailCategory').textContent = catLabels[currentProduct.category] || currentProduct.category;
+            document.getElementById('detailName').textContent = currentProduct.name;
+            document.getElementById('detailPrice').textContent = currentProduct.price.toLocaleString('fr-DZ') + ' DA';
+            const op = document.getElementById('detailOldPrice');
+            op.textContent = currentProduct.oldPrice ? currentProduct.oldPrice.toLocaleString('fr-DZ') + ' DA' : '';
+            op.style.display = currentProduct.oldPrice ? 'block' : 'none';
+            document.getElementById('detailStock').innerHTML = '<i class="fas fa-check-circle"></i> ' + currentProduct.stock;
+            document.getElementById('detailDesc').textContent = currentProduct.desc;
+
+            const related = all.filter(p => p.category === currentProduct.category && p.id !== currentProduct.id).slice(0, 4);
+            document.getElementById('relatedProducts').innerHTML = related.map(p => `
+                <div class="product-card" onclick="window.location.href='product.html?id=${p.id}'">
+                    <div class="product-image"><span class="product-emoji">${p.emoji}</span></div>
+                    <div class="product-info">
+                        <div class="product-cat">${catLabels[p.category]||p.category}</div>
+                        <div class="product-name">${p.name}</div>
+                        <div class="product-bottom"><div class="product-price">${p.price.toLocaleString('fr-DZ')} DA</div></div>
+                    </div>
+                </div>`).join('');
+        }
+
+        function changeDetailQty(d) { detailQty = Math.max(1, detailQty + d); document.getElementById('detailQty').textContent = detailQty; }
+        function addToCartDetail() { if (currentProduct) { for (let i = 0; i < detailQty; i++) addToCart(currentProduct.id); } }
+        function toggleWishlistDetail() { if (currentProduct) toggleWishlist(currentProduct.id); }
+    </script>
+</body>
+</html>

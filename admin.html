@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - iPhone Store 25</title>
+    <link rel="stylesheet" href="admin-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-card">
+            <div class="login-icon"><i class="fas fa-lock"></i></div>
+            <h2>Administration</h2>
+            <p>Entrez le mot de passe pour accéder</p>
+            <div class="form-group"><label>Mot de passe</label><input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()"></div>
+            <button class="btn btn-primary login-btn" onclick="adminLogin()"><i class="fas fa-sign-in-alt"></i> Se Connecter</button>
+            <p class="login-error" id="loginError">Mot de passe incorrect!</p>
+        </div>
+    </div>
+
+    <div class="admin-layout" id="adminLayout" style="display:none">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="index.html" class="sidebar-logo">📱 iPhone<span>Store</span>25</a>
+                <button class="sidebar-close" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" onclick="showSection('dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</a>
+                <a href="#" class="nav-item" onclick="showSection('products')"><i class="fas fa-box"></i> Produits</a>
+                <a href="#" class="nav-item" onclick="showSection('orders')"><i class="fas fa-shopping-bag"></i> Commandes</a>
+                <a href="#" class="nav-item" onclick="showSection('settings')"><i class="fas fa-cog"></i> Paramètres</a>
+                <a href="index.html" class="nav-item"><i class="fas fa-store"></i> Voir le Site</a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="admin-profile">
+                    <div class="admin-avatar">A</div>
+                    <div class="admin-info"><span class="admin-name">Admin</span><span class="admin-role">Super Admin</span></div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <button class="menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                <div class="top-bar-right">
+                    <div class="search-box-admin"><i class="fas fa-search"></i><input type="text" placeholder="Rechercher..."></div>
+                    <button class="notif-btn"><i class="fas fa-bell"></i><span class="notif-badge">0</span></button>
+                    <div class="admin-avatar-sm">A</div>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <div class="section active" id="section-dashboard">
+                    <h2 class="page-title">Tableau de Bord</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card"><div class="stat-icon stat-blue"><i class="fas fa-box"></i></div><div><div class="stat-value" id="totalProducts">0</div><div class="stat-label">Produits</div></div></div>
+                        <div class="stat-card"><div class="stat-icon stat-green"><i class="fas fa-shopping-bag"></i></div><div><div class="stat-value" id="totalOrders">0</div><div class="stat-label">Commandes</div></div></div>
+                        <div class="stat-card"><div class="stat-icon stat-orange"><i class="fas fa-coins"></i></div><div><div class="stat-value" id="totalRevenue">0</div><div class="stat-label">Revenu (DA)</div></div></div>
+                    </div>
+                    <div class="dashboard-grid">
+                        <div class="card"><div class="card-header"><h3>Commandes Récentes</h3></div><table class="data-table"><thead><tr><th>ID</th><th>Client</th><th>Total</th><th>Statut</th></tr></thead><tbody id="recentOrdersBody"></tbody></table></div>
+                        <div class="card"><div class="card-header"><h3>Top Produits</h3></div><div id="topProductsList" style="padding:14px"></div></div>
+                    </div>
+                </div>
+
+                <div class="section" id="section-products">
+                    <div class="section-header">
+                        <h2 class="page-title">Produits</h2>
+                        <button class="btn btn-primary" onclick="openProductModal()"><i class="fas fa-plus"></i> Ajouter</button>
+                    </div>
+                    <div class="filters-bar">
+                        <select class="filter-select" id="filterCategory" onchange="filterAdminProducts()">
+                            <option value="all">Toutes catégories</option>
+                            <option value="telephone">📱 Téléphones</option>
+                            <option value="ecran">🖥️ Écrans</option>
+                            <option value="batterie">🔋 Batteries</option>
+                            <option value="camera">📷 Caméras</option>
+                            <option value="boitier">🛡️ Boîtiers</option>
+                            <option value="accessoire">✨ Accessoires</option>
+                            <option value="outils">🔧 Outils</option>
+                        </select>
+                        <div class="search-box-admin"><i class="fas fa-search"></i><input type="text" placeholder="Rechercher..." id="adminSearch" oninput="filterAdminProducts()"></div>
+                    </div>
+                    <table class="data-table full-table">
+                        <thead><tr><th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th><th>ID</th><th>Produit</th><th>Catégorie</th><th>Prix</th><th>Stock</th><th>Actions</th></tr></thead>
+                        <tbody id="productsTableBody"></tbody>
+                    </table>
+                    <div id="pagination" class="pagination"></div>
+                    <div style="margin-top:10px"><button class="btn btn-danger" id="deleteSelectedBtn" onclick="deleteSelected()" style="display:none"><i class="fas fa-trash"></i> Supprimer</button></div>
+                </div>
+
+                <div class="section" id="section-orders">
+                    <h2 class="page-title">Commandes</h2>
+                    <table class="data-table full-table">
+                        <thead><tr><th>ID</th><th>Client</th><th>Tél</th><th>Total</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead>
+                        <tbody id="ordersTableBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="section" id="section-settings">
+                    <h2 class="page-title">Paramètres</h2>
+                    <div class="settings-grid">
+                        <div class="card"><div class="card-header"><h3>Magasin</h3></div><div class="settings-form">
+                            <div class="form-group"><label>Nom</label><input type="text" id="storeName" value="iPhone Store 25"></div>
+                            <div class="form-group"><label>Email</label><input type="email" id="storeEmail" value="contact@iphonestore25.dz"></div>
+                            <div class="form-group"><label>Téléphone</label><input type="text" id="storePhone" value="+213 770 579 244"></div>
+                            <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Enregistrer</button>
+                        </div></div>
+                        <div class="card"><div class="card-header"><h3>Changer Mot de Passe</h3></div><div class="settings-form">
+                            <div class="form-group"><label>Mot de passe actuel</label><input type="password" id="currentPassword" placeholder="Mot de passe actuel"></div>
+                            <div class="form-group"><label>Nouveau mot de passe</label><input type="password" id="newPassword" placeholder="Min 4 caractères"></div>
+                            <div class="form-group"><label>Confirmer</label><input type="password" id="confirmPassword" placeholder="Confirmer le mot de passe"></div>
+                            <button class="btn btn-primary" onclick="changePassword()"><i class="fas fa-lock"></i> Changer</button>
+                        </div></div>
+                        <div class="card"><div class="card-header"><h3>Cloudinary (Images)</h3></div><div class="settings-form">
+                            <p class="setting-desc">Configurez Cloudinary pour stocker les images des produits en ligne.</p>
+                            <div class="form-group"><label>Cloud Name</label><input type="text" id="cloudinaryName" placeholder="Votre Cloud Name" value=""></div>
+                            <div class="form-group"><label>Upload Preset</label><input type="text" id="cloudinaryPreset" placeholder="Votre Upload Preset" value=""></div>
+                            <button class="btn btn-primary" onclick="saveCloudinaryConfig()"><i class="fas fa-save"></i> Enregistrer</button>
+                        </div></div>
+                        <div class="card"><div class="card-header"><h3>Backup</h3></div><div class="settings-form">
+                            <p class="setting-desc">Exportez ou importez les données du magasin.</p>
+                            <button class="btn btn-primary" onclick="exportData()"><i class="fas fa-download"></i> Exporter</button>
+                            <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()"><i class="fas fa-upload"></i> Importer</button>
+                            <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+                        </div></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="productModal">
+        <div class="modal">
+            <div class="modal-header"><h3 id="productModalTitle">Ajouter un Produit</h3><button class="modal-close" onclick="closeProductModal()"><i class="fas fa-times"></i></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="editProductId">
+                <div class="form-row">
+                    <div class="form-group"><label>Nom *</label><input type="text" id="prodName" placeholder="Ex: iPhone 15 Pro Max"></div>
+                    <div class="form-group"><label>Catégorie</label><select id="prodCategory"><option value="telephone">📱 Téléphone</option><option value="ecran">🖥️ Écran</option><option value="batterie">🔋 Batterie</option><option value="camera">📷 Caméra</option><option value="boitier">🛡️ Boîtier</option><option value="accessoire">✨ Accessoire</option><option value="outils">🔧 Outils</option></select></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Prix (DA) *</label><input type="number" id="prodPrice" placeholder="15000"></div>
+                    <div class="form-group"><label>Ancien Prix (DA)</label><input type="number" id="prodOldPrice" placeholder="Optionnel"></div>
+                </div>
+                <div class="form-group">
+                    <label>Image du Produit</label>
+                    <div class="image-upload-area">
+                        <input type="file" id="prodImageFile" accept="image/*" onchange="handleImageUpload(event)" style="display:none">
+                        <div class="image-upload-row">
+                            <button class="btn btn-outline btn-sm" onclick="document.getElementById('prodImageFile').click()"><i class="fas fa-upload"></i> Upload Cloudinary</button>
+                            <span class="or-text">ou</span>
+                            <input type="text" id="prodImageUrl" placeholder="URL de l'image" oninput="previewImageUrl()">
+                        </div>
+                        <div id="uploadLoader" class="upload-loader" style="display:none"><i class="fas fa-spinner fa-spin"></i> Upload en cours...</div>
+                        <div id="imagePreview" class="image-preview"></div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Emoji</label><input type="text" id="prodEmoji" value="📱"></div>
+                    <div class="form-group"><label>Badge</label><select id="prodBadge"><option value="">Aucun</option><option value="new">Nouveau</option><option value="hot">Best Seller</option><option value="sale">Promo</option></select></div>
+                </div>
+                <div class="form-group"><label>Description</label><textarea id="prodDesc" rows="3" placeholder="Description..."></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" onclick="closeProductModal()">Annuler</button><button class="btn btn-primary" onclick="saveProduct()"><i class="fas fa-save"></i> Enregistrer</button></div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="admin-script.js"></script>
+    <script>
+        // Load Cloudinary config from localStorage
+        document.addEventListener('DOMContentLoaded', () => {
+            const cn = localStorage.getItem('ipstore25_cloudinary_name');
+            const cp = localStorage.getItem('ipstore25_cloudinary_preset');
+            if (cn) document.getElementById('cloudinaryName').value = cn;
+            if (cp) document.getElementById('cloudinaryPreset').value = cp;
+            if (cn && cp) {
+                CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${cn}/image/upload`;
+                CLOUDINARY_UPLOAD_PRESET = cp;
+            }
+        });
+
+        function saveCloudinaryConfig() {
+            const cn = document.getElementById('cloudinaryName').value.trim();
+            const cp = document.getElementById('cloudinaryPreset').value.trim();
+            if (cn) localStorage.setItem('ipstore25_cloudinary_name', cn);
+            if (cp) localStorage.setItem('ipstore25_cloudinary_preset', cp);
+            if (cn && cp) {
+                CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${cn}/image/upload`;
+                CLOUDINARY_UPLOAD_PRESET = cp;
+            }
+            showToast('Cloudinary configuré!', 'success');
+        }
+    </script>
+</body>
+</html>

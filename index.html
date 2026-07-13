@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPhone Store 25 - Pièces iPhone Premium en Algérie</title>
+    <meta name="description" content="iPhone Store 25 - La première destination pour les pièces détachées iPhone en Algérie.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        .phones-section { padding: 80px 0; position: relative; z-index: 1; }
+        .phone-card {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.8);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+        }
+        .phone-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(99,102,241,0.2);
+        }
+        .phone-card-badge {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 2;
+        }
+        .badge-new { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .badge-hot { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .badge-sale { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .phone-card-image {
+            height: 220px;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 100px;
+            position: relative;
+            overflow: hidden;
+        }
+        .phone-card-image::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .phone-card-body {
+            padding: 20px;
+        }
+        .phone-card-category {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .phone-card-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+        .phone-card-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 16px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .phone-card-prices {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .phone-card-price {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+        .phone-card-old-price {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-decoration: line-through;
+        }
+        .phone-card-footer {
+            display: flex;
+            gap: 10px;
+        }
+        .phone-card-footer .btn {
+            flex: 1;
+            justify-content: center;
+            padding: 12px;
+            font-size: 13px;
+        }
+        .phone-card-stock {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #10b981;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .phone-card-stock i { font-size: 10px; }
+
+        .promo-banner {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+            border-radius: 20px;
+            padding: 40px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 60px;
+        }
+        .promo-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        .promo-banner::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+        .promo-content { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
+        .promo-text h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+        .promo-text p { font-size: 15px; opacity: 0.9; margin-bottom: 20px; }
+        .promo-btn { background: white; color: var(--primary); padding: 14px 32px; border-radius: 12px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s; }
+        .promo-btn:hover { transform: scale(1.05); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .promo-emoji { font-size: 80px; position: relative; z-index: 1; }
+
+        @media (max-width: 768px) {
+            .phone-card-image { height: 160px; font-size: 70px; }
+            .phone-card-name { font-size: 14px; }
+            .phone-card-price { font-size: 18px; }
+            .promo-banner { padding: 24px; }
+            .promo-text h2 { font-size: 20px; }
+            .promo-emoji { font-size: 50px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-effects"><div class="bg-gradient"></div></div>
+
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">📱</span>
+                <span class="logo-text">iPhone<span class="logo-highlight">Store</span><span class="logo-num">25</span></span>
+            </a>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Rechercher un produit iPhone..." onkeydown="if(event.key==='Enter')window.location.href='products.html?search='+this.value">
+                <button onclick="window.location.href='products.html?search='+document.getElementById('searchInput').value"><i class="fas fa-search"></i></button>
+            </div>
+            <nav class="main-nav" id="mainNav">
+                <a href="index.html" class="nav-link active">Accueil</a>
+                <a href="products.html" class="nav-link">Produits</a>
+                <a href="admin.html" class="nav-link">Admin</a>
+            </nav>
+            <div class="header-actions">
+                <a href="admin.html" class="header-btn" title="Admin"><i class="fas fa-cog"></i></a>
+                <button class="header-btn cart-btn" onclick="openCart()">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="badge" id="cartCount">0</span>
+                </button>
+                <button class="header-btn" onclick="openWishlist()">
+                    <i class="fas fa-heart"></i>
+                    <span class="badge" id="wishlistCount">0</span>
+                </button>
+                <button class="header-btn mobile-menu" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container hero-inner">
+            <div class="hero-content">
+                <div class="hero-badge">⚡ Livraison 24-48h partout en Algérie</div>
+                <h1>Pièces <span class="text-gradient">iPhone</span> Premium</h1>
+                <p>Découvrez notre collection de pièces détachées iPhone originales et certifiées. Qualité garantie, prix imbattables.</p>
+                <div class="hero-buttons">
+                    <a href="products.html" class="btn btn-primary"><i class="fas fa-shopping-bag"></i> Voir les Produits</a>
+                    <a href="products.html?cat=telephone" class="btn btn-outline"><i class="fas fa-mobile-alt"></i> Téléphones</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat"><span class="stat-num">25+</span><span class="stat-label">Produits</span></div>
+                    <div class="stat"><span class="stat-num">100%</span><span class="stat-label">Original</span></div>
+                    <div class="stat"><span class="stat-num">24h</span><span class="stat-label">Livraison</span></div>
+                    <div class="stat"><span class="stat-num">30J</span><span class="stat-label">Garantie</span></div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="iphone-showcase">
+                    <div class="iphone-body">
+                        <div class="iphone-notch"></div>
+                        <div class="iphone-screen">
+                            <div class="screen-logo">📱</div>
+                            <div class="screen-text">iPhone Store 25</div>
+                            <div class="screen-sub">Pièces iPhone Premium</div>
+                        </div>
+                    </div>
+                    <div class="floating-card card-1">✨ Original</div>
+                    <div class="floating-card card-2">🛡️ Garantie</div>
+                    <div class="floating-card card-3">🚀 Rapide</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="categories" id="categories">
+        <div class="container">
+            <h2 class="section-title">Catégories <span class="text-gradient">Populaires</span></h2>
+            <div class="categories-grid">
+                <a href="products.html?cat=telephone" class="cat-card">
+                    <div class="cat-icon">📱</div>
+                    <h3>Téléphones</h3>
+                    <p>iPhone complets</p>
+                </a>
+                <a href="products.html?cat=ecran" class="cat-card">
+                    <div class="cat-icon">🖥️</div>
+                    <h3>Écrans</h3>
+                    <p>OLED & LCD</p>
+                </a>
+                <a href="products.html?cat=batterie" class="cat-card">
+                    <div class="cat-icon">🔋</div>
+                    <h3>Batteries</h3>
+                    <p>Haute capacité</p>
+                </a>
+                <a href="products.html?cat=camera" class="cat-card">
+                    <div class="cat-icon">📷</div>
+                    <h3>Caméras</h3>
+                    <p>Arrière & FaceTime</p>
+                </a>
+                <a href="products.html?cat=boitier" class="cat-card">
+                    <div class="cat-icon">🛡️</div>
+                    <h3>Boîtiers</h3>
+                    <p>Arrière & Latéral</p>
+                </a>
+                <a href="products.html?cat=accessoire" class="cat-card">
+                    <div class="cat-icon">✨</div>
+                    <h3>Accessoires</h3>
+                    <p>Coques & Verres</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="phones-section">
+        <div class="container">
+            <h2 class="section-title">📱 Nos <span class="text-gradient">Téléphones</span></h2>
+            <div class="products-grid" id="phonesGrid"></div>
+            <div style="text-align:center;margin-top:36px">
+                <a href="products.html?cat=telephone" class="btn btn-primary"><i class="fas fa-mobile-alt"></i> Voir tous les téléphones</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="promo-banner">
+            <div class="promo-content">
+                <div class="promo-text">
+                    <h2>🔥 Offre Spéciale - Jusqu'à -20%</h2>
+                    <p>Profitez de réductions exclusives sur une sélection de pièces iPhone. Offre limitée!</p>
+                    <a href="products.html" class="promo-btn"><i class="fas fa-tag"></i> Voir les offres</a>
+                </div>
+                <div class="promo-emoji">🎁</div>
+            </div>
+        </div>
+    </div>
+
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Pourquoi <span class="text-gradient">iPhone Store 25</span></h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🏆</div>
+                    <h3>Qualité Premium</h3>
+                    <p>Pièces testées et certifiées pour une qualité optimale</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Livraison Express</h3>
+                    <p>Livraison en 24-48h partout en Algérie</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Garantie 30 Jours</h3>
+                    <p>Satisfait ou remboursé pendant 30 jours</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <h3>Support 24/7</h3>
+                    <p>Notre équipe est disponible pour vous aider</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-logo">📱 iPhone<span>Store</span>25</div>
+                    <p>Votre destination premium pour les pièces iPhone de qualité en Algérie.</p>
+                    <div class="social-links">
+                        <a href="https://facebook.com/iphonestore25" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://instagram.com/iphonestore25" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="https://tiktok.com/@iphonestore25" target="_blank"><i class="fab fa-tiktok"></i></a>
+                        <a href="https://wa.me/213770579244" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Liens Utiles</h4>
+                    <a href="#">Politique de Confidentialité</a>
+                    <a href="#">Termes et Conditions</a>
+                    <a href="#">À Propos de Nous</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <p><i class="fas fa-phone"></i> +213 770 579 244</p>
+                    <p><i class="fas fa-phone"></i> +213 770 579 211</p>
+                    <p><i class="fas fa-envelope"></i> contact@iphonestore25.dz</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Mon Compte</h4>
+                    <a href="#">Se Connecter</a>
+                    <a href="#">S'inscrire</a>
+                    <a href="#">Mes Commandes</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>Copyright © 2026 iPhone Store 25. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="sidebar" id="cartSidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-shopping-cart"></i> Panier</h3>
+            <button class="close-btn" onclick="closeCart()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="sidebar-body" id="cartItems">
+            <div class="empty-state"><i class="fas fa-shopping-basket"></i><p>Votre panier est vide</p></div>
+        </div>
+        <div class="sidebar-footer" id="cartFooter" style="display:none">
+            <div class="total"><span>Total:</span><span id="cartTotal">0 DA</span></div>
+            <button class="btn btn-primary btn-full" onclick="checkout()"><i class="fas fa-credit-card"></i> Commander</button>
+        </div>
+    </div>
+
+    <div class="sidebar" id="wishlistSidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-heart"></i> Favoris</h3>
+            <button class="close-btn" onclick="closeWishlist()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="sidebar-body" id="wishlistItems">
+            <div class="empty-state"><i class="fas fa-heart-broken"></i><p>Aucun favori</p></div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="closeAll()"></div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="fab-container">
+        <a href="https://wa.me/213770579244" target="_blank" class="fab fab-whatsapp" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://instagram.com/iphonestore25" target="_blank" class="fab fab-instagram" title="Instagram"><i class="fab fa-instagram"></i></a>
+        <button class="fab fab-top" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const phones = products.filter(p => p.category === 'telephone');
+            const grid = document.getElementById('phonesGrid');
+            if (!grid) return;
+
+            if (phones.length === 0) {
+                grid.innerHTML = '<div class="empty-state-full"><i class="fas fa-mobile-alt"></i><h3>Aucun téléphone pour le moment</h3><p>Ajoutez des téléphones depuis l\'espace administrateur</p></div>';
+                return;
+            }
+
+            phones.forEach(p => {
+                const inW = wishlist.includes(p.id);
+                const card = document.createElement('div');
+                card.className = 'phone-card';
+                card.innerHTML = `
+                    ${p.badge ? `<span class="phone-card-badge badge-${p.badge}">${p.badge === 'hot' ? '🔥 Best Seller' : p.badge === 'new' ? '✨ Nouveau' : '💰 Promo'}</span>` : ''}
+                    <div class="phone-card-image" onclick="window.location.href='product.html?id=${p.id}'">
+                        <span>${p.emoji}</span>
+                    </div>
+                    <div class="phone-card-body">
+                        <div class="phone-card-category">${categoryLabels[p.category] || p.category}</div>
+                        <div class="phone-card-name">${p.name}</div>
+                        <div class="phone-card-desc">${p.desc}</div>
+                        <div class="phone-card-stock"><i class="fas fa-check-circle"></i> ${p.stock}</div>
+                        <div class="phone-card-prices">
+                            <span class="phone-card-price">${p.price.toLocaleString('fr-DZ')} DA</span>
+                            ${p.oldPrice ? `<span class="phone-card-old-price">${p.oldPrice.toLocaleString('fr-DZ')} DA</span>` : ''}
+                        </div>
+                        <div class="phone-card-footer">
+                            <button class="btn btn-primary" onclick="event.stopPropagation();addToCart(${p.id})"><i class="fas fa-cart-plus"></i> Ajouter</button>
+                            <button class="btn btn-outline" onclick="event.stopPropagation();window.location.href='product.html?id=${p.id}'"><i class="fas fa-eye"></i> Voir</button>
+                            <button class="btn btn-outline ${inW ? 'wishlisted' : ''}" onclick="event.stopPropagation();toggleWishlist(${p.id})"><i class="fas fa-heart"></i></button>
+                        </div>
+                    </div>`;
+                grid.appendChild(card);
+            });
+        });
+    </script>
+</body>
+</html>
