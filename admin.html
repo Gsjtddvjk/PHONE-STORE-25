@@ -202,11 +202,11 @@
             await fetchAdminPass();
 
             // Update DB status
-            if (supabaseAdmin) {
+            if (_db.admin) {
                 try {
                     const controller = new AbortController();
                     const timer = setTimeout(() => controller.abort(), 10000);
-                    const { error } = await supabaseAdmin.from('settings').select('key').limit(1);
+                    const { error } = await _db.admin.from('settings').select('key').limit(1);
                     clearTimeout(timer);
                     setDbStatus(error ? 'disconnected' : 'connected');
                 } catch { setDbStatus('disconnected'); }

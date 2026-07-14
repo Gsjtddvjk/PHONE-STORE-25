@@ -165,12 +165,13 @@
         });
 
         async function loadProduct(id) {
+            const client = _db.client;
             // Try Supabase first
-            if (supabase) {
+            if (client) {
                 try {
                     const controller = new AbortController();
                     const timer = setTimeout(() => controller.abort(), 10000);
-                    const { data, error } = await supabase
+                    const { data, error } = await client
                         .from('products')
                         .select('*')
                         .eq('id', id)
@@ -230,9 +231,10 @@
         async function loadRelated() {
             if (!currentProduct) return;
             let related = [];
-            if (supabase) {
+            const client = _db.client;
+            if (client) {
                 try {
-                    const { data } = await supabase
+                    const { data } = await client
                         .from('products')
                         .select('*')
                         .eq('category_id', currentProduct.category)

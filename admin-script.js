@@ -28,14 +28,15 @@ function setDbStatus(status) {
 // Get admin password (Supabase first, localStorage fallback)
 // ============================================
 async function fetchAdminPass() {
-    if (!supabaseAdmin) {
+    const admin = _db.admin;
+    if (!admin) {
         adminPass = localStorage.getItem(PASS_KEY) || DEFAULT_PASS;
         return;
     }
     try {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 10000);
-        const { data, error } = await supabaseAdmin
+        const { data, error } = await _db.admin
             .from('settings')
             .select('value')
             .eq('key', 'admin_pass')
@@ -57,14 +58,14 @@ function getPass() { return adminPass || localStorage.getItem(PASS_KEY) || DEFAU
 async function fetchProducts() {
     const cacheKey = 'ipstore25_cache_admin_products';
 
-    if (!supabaseAdmin) {
+    if (!_db.admin) {
         adminProducts = JSON.parse(localStorage.getItem('ipstore25_products')) || [];
         return;
     }
     try {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 10000);
-        const { data, error } = await supabaseAdmin
+        const { data, error } = await _db.admin
             .from('products')
             .select('*')
             .order('id', { ascending: true });
@@ -93,14 +94,14 @@ async function fetchProducts() {
 async function fetchOrders() {
     const cacheKey = 'ipstore25_cache_admin_orders';
 
-    if (!supabaseAdmin) {
+    if (!_db.admin) {
         orders = JSON.parse(localStorage.getItem('ipstore25_orders')) || [];
         return;
     }
     try {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 10000);
-        const { data, error } = await supabaseAdmin
+        const { data, error } = await _db.admin
             .from('orders')
             .select('*')
             .order('id', { ascending: false });
@@ -132,7 +133,7 @@ async function fetchOrders() {
 }
 
 async function saveProductToDB(product) {
-    if (!supabaseAdmin) return true;
+    if (!_db.admin) return true;
     try {
         const dbProduct = {
             name: product.name,
@@ -150,14 +151,14 @@ async function saveProductToDB(product) {
         const timer = setTimeout(() => controller.abort(), 10000);
 
         if (product.dbId) {
-            const { error } = await supabaseAdmin
+            const { error } = await _db.admin
                 .from('products')
                 .update(dbProduct)
                 .eq('id', product.dbId);
             clearTimeout(timer);
             if (error) throw error;
         } else {
-            const { error } = await supabaseAdmin
+            const { error } = await _db.admin
                 .from('products')
                 .insert([dbProduct]);
             clearTimeout(timer);
@@ -171,11 +172,11 @@ async function saveProductToDB(product) {
 }
 
 async function deleteProductFromDB(id) {
-    if (!supabaseAdmin) return true;
+    if (!_db.admin) return true;
     try {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 10000);
-        const { error } = await supabaseAdmin
+        const { error } = await _db.admin
             .from('products')
             .delete()
             .eq('id', id);
@@ -189,11 +190,11 @@ async function deleteProductFromDB(id) {
 }
 
 async function updateOrderStatusDB(id, status) {
-    if (!supabaseAdmin) return true;
+    if (!_db.admin) return true;
     try {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 10000);
-        const { error } = await supabaseAdmin
+        const { error } = await _db.admin
             .from('orders')
             .update({ status: status })
             .eq('id', id);
@@ -210,9 +211,9 @@ async function updateOrderStatusDB(id, status) {
 // REAL-TIME: Admin subscriptions
 // ============================================
 function setupAdminRealtime() {
-    if (!supabaseAdmin) return;
+    if (!_db.admin) return;
 
-    supabaseAdmin
+    _db.admin
         .channel('admin-products')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => {
             await fetchProducts();
@@ -221,7 +222,7 @@ function setupAdminRealtime() {
         })
         .subscribe();
 
-    supabaseAdmin
+    _db.admin
         .channel('admin-orders')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async () => {
             await fetchOrders();
@@ -265,9 +266,9 @@ async function changePassword() {
     }
 
     // Save to Supabase settings table
-    if (supabaseAdmin) {
+    if (_db.admin) {
         try {
-            const { error } = await supabaseAdmin
+            const { error } = await _db.admin
                 .from('settings')
                 .upsert({ key: 'admin_pass', value: newPass }, { onConflict: 'key' });
             if (error) throw error;

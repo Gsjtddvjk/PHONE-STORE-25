@@ -14,6 +14,10 @@ const categoryLabels = {
     outils: 'Outils'
 };
 
+// Shorthand
+const getClient = () => _db.client;
+const getAdmin = () => _db.admin;
+
 // ============================================
 // DB Status Badge
 // ============================================
@@ -40,8 +44,8 @@ async function supabaseQuery(table, options = {}) {
     const { select = '*', eq, order, limit, timeout = 10000 } = options;
     const cacheKey = `ipstore25_cache_${table}`;
 
-    if (!supabase) {
-        console.warn('Supabase client not available, using cache');
+    if (!getClient()) {
+        console.warn('[DB] Client not available, using cache');
         const cached = localStorage.getItem(cacheKey);
         if (cached) return JSON.parse(cached);
         return null;
@@ -54,7 +58,7 @@ async function supabaseQuery(table, options = {}) {
     }, timeout);
 
     try {
-        let query = supabase.from(table).select(select);
+        let query = getClient().from(table).select(select);
         if (eq) Object.entries(eq).forEach(([k, v]) => { query = query.eq(k, v); });
         if (order) query = query.order(order.column, { ascending: order.ascending ?? true });
         if (limit) query = query.limit(limit);
@@ -155,37 +159,36 @@ function applySettings() {
 // REAL-TIME: Subscribe to changes
 // ============================================
 function setupRealtime() {
-    if (!supabase) return;
+    const client = getClient();
+    if (!client) return;
 
     // Products real-time
-    supabase
+    client
         .channel('products-changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async (payload) => {
-            console.log('Realtime product change:', payload.eventType);
+            console.log('[Realtime] Product change:', payload.eventType);
             await loadProducts();
-            // Re-render current page
             const grid = document.getElementById('productsGrid');
             if (grid) renderProducts(products);
-            // Re-render phones on index
             const phonesGrid = document.getElementById('phonesGrid');
             if (phonesGrid) renderPhones();
         })
         .subscribe();
 
-    // Settings real-time (phone, email, etc.)
-    supabase
+    // Settings real-time
+    client
         .channel('settings-changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, async (payload) => {
-            console.log('Realtime settings change:', payload.eventType);
+            console.log('[Realtime] Settings change:', payload.eventType);
             await loadSettings();
         })
         .subscribe();
 
     // Categories real-time
-    supabase
+    client
         .channel('categories-changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, async (payload) => {
-            console.log('Realtime categories change:', payload.eventType);
+            console.log('[Realtime] Categories change:', payload.eventType);
             await loadCategories();
         })
         .subscribe();
