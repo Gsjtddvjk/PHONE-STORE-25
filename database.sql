@@ -170,4 +170,4 @@ INSERT INTO settings (key, value) VALUES
 ('currency', 'DA'),
 ('shipping_cost', '500'),
 ('free_shipping_min', '5000'),
-('admin_password', 'admin123');
+('admin_pass', 'admin123');

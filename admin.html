@@ -9,6 +9,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="page-loader" id="pageLoader">
+        <div class="loader-logo">📱</div>
+        <div class="loader-text">iPhone<span>Store</span>25</div>
+        <div class="loader-bar"><div class="loader-bar-inner"></div></div>
+        <div class="loader-status">Connexion en cours...</div>
+    </div>
+
     <div class="login-overlay" id="loginOverlay">
         <div class="login-card">
             <div class="login-icon"><i class="fas fa-lock"></i></div>
@@ -45,6 +52,10 @@
             <header class="top-bar">
                 <button class="menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
                 <div class="top-bar-right">
+                    <div class="db-status loading" id="dbStatus">
+                        <span class="db-status-dot"></span>
+                        <span id="dbStatusText">Connexion...</span>
+                    </div>
                     <div class="search-box-admin"><i class="fas fa-search"></i><input type="text" placeholder="Rechercher..."></div>
                     <button class="notif-btn"><i class="fas fa-bell"></i><span class="notif-badge">0</span></button>
                     <div class="admin-avatar-sm">A</div>
@@ -173,8 +184,11 @@
     <script src="supabase-config.js"></script>
     <script src="admin-script.js"></script>
     <script>
-        // Load Cloudinary config from localStorage
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Page loader
+            setDbStatus('loading');
+
+            // Load Cloudinary config
             const cn = localStorage.getItem('ipstore25_cloudinary_name');
             const cp = localStorage.getItem('ipstore25_cloudinary_preset');
             if (cn) document.getElementById('cloudinaryName').value = cn;
@@ -183,6 +197,25 @@
                 CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${cn}/image/upload`;
                 CLOUDINARY_UPLOAD_PRESET = cp;
             }
+
+            // Fetch password from Supabase
+            await fetchAdminPass();
+
+            // Update DB status
+            if (supabaseAdmin) {
+                try {
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), 3000);
+                    const { error } = await supabaseAdmin.from('settings').select('key').limit(1);
+                    clearTimeout(timer);
+                    setDbStatus(error ? 'disconnected' : 'connected');
+                } catch { setDbStatus('disconnected'); }
+            } else {
+                setDbStatus('disconnected');
+            }
+
+            // Hide loader
+            hidePageLoader();
         });
 
         function saveCloudinaryConfig() {

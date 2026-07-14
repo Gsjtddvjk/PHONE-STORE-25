@@ -49,6 +49,13 @@
     </style>
 </head>
 <body>
+    <div class="page-loader" id="pageLoader">
+        <div class="loader-logo">📱</div>
+        <div class="loader-text">iPhone<span>Store</span>25</div>
+        <div class="loader-bar"><div class="loader-bar-inner"></div></div>
+        <div class="loader-status">Connexion en cours...</div>
+    </div>
+
     <div class="bg-effects"><div class="bg-gradient"></div></div>
 
     <header class="header">
@@ -67,6 +74,10 @@
                 <a href="admin.html" class="nav-link">Admin</a>
             </nav>
             <div class="header-actions">
+                <div class="db-status loading" id="dbStatus">
+                    <span class="db-status-dot"></span>
+                    <span id="dbStatusText">Connexion...</span>
+                </div>
                 <a href="admin.html" class="header-btn" title="Admin"><i class="fas fa-cog"></i></a>
                 <button class="header-btn cart-btn" onclick="openCart()">
                     <i class="fas fa-shopping-cart"></i>
@@ -164,6 +175,7 @@
         let searchQuery = '';
 
         document.addEventListener('DOMContentLoaded', () => {
+            // script.js already loaded products, just apply filters
             const params = new URLSearchParams(window.location.search);
             const cat = params.get('cat');
             const q = params.get('search');

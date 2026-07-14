@@ -2,6 +2,7 @@ let products = [];
 let cart = JSON.parse(localStorage.getItem('ipstore25_cart')) || [];
 let wishlist = JSON.parse(localStorage.getItem('ipstore25_wishlist')) || [];
 let currentModalProduct = null;
+let siteSettings = {};
 
 const categoryLabels = {
     telephone: 'Téléphones',
@@ -14,22 +15,73 @@ const categoryLabels = {
 };
 
 // ============================================
+// DB Status Badge
+// ============================================
+function setDbStatus(status) {
+    const el = document.getElementById('dbStatus');
+    const txt = document.getElementById('dbStatusText');
+    if (!el || !txt) return;
+    el.className = 'db-status ' + status;
+    txt.textContent = { connected: 'En ligne', disconnected: 'Hors ligne', loading: 'Connexion...' }[status] || status;
+}
+
+// ============================================
+// Page Loader
+// ============================================
+function hidePageLoader() {
+    const loader = document.getElementById('pageLoader');
+    if (loader) loader.classList.add('hidden');
+}
+
+// ============================================
+// Supabase query with FAST timeout + cache fallback
+// ============================================
+async function supabaseQuery(table, options = {}) {
+    const { select = '*', eq, order, limit, timeout = 3000 } = options;
+    const cacheKey = `ipstore25_cache_${table}`;
+
+    if (!supabase) {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) return JSON.parse(cached);
+        return null;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+
+    try {
+        let query = supabase.from(table).select(select);
+        if (eq) Object.entries(eq).forEach(([k, v]) => { query = query.eq(k, v); });
+        if (order) query = query.order(order.column, { ascending: order.ascending ?? true });
+        if (limit) query = query.limit(limit);
+
+        const { data, error } = await query;
+        clearTimeout(timer);
+        if (error) throw error;
+
+        localStorage.setItem(cacheKey, JSON.stringify(data));
+        return data;
+    } catch (err) {
+        clearTimeout(timer);
+        console.error(`Query error (${table}):`, err);
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) return JSON.parse(cached);
+        return null;
+    }
+}
+
+// ============================================
 // Load products from Supabase
 // ============================================
 async function loadProducts() {
-    if (!supabase) {
-        products = JSON.parse(localStorage.getItem('ipstore25_products')) || [];
-        return;
-    }
-    try {
-        const { data, error } = await supabase
-            .from('products')
-            .select('*')
-            .eq('is_active', true)
-            .order('sort_order', { ascending: true });
+    const data = await supabaseQuery('products', {
+        select: '*',
+        eq: { is_active: true },
+        order: { column: 'sort_order', ascending: true },
+        timeout: 3000
+    });
 
-        if (error) throw error;
-
+    if (data) {
         products = data.map(p => ({
             id: p.id,
             name: p.name,
@@ -42,9 +94,10 @@ async function loadProducts() {
             desc: p.description || '',
             stock: p.stock || 'En stock'
         }));
-    } catch (err) {
-        console.error('Error loading products:', err);
+        setDbStatus('connected');
+    } else {
         products = JSON.parse(localStorage.getItem('ipstore25_products')) || [];
+        setDbStatus('disconnected');
     }
 }
 
@@ -52,34 +105,146 @@ async function loadProducts() {
 // Load categories from Supabase
 // ============================================
 async function loadCategories() {
-    if (!supabase) return;
-    try {
-        const { data, error } = await supabase
-            .from('categories')
-            .select('*')
-            .eq('is_active', true)
-            .order('sort_order', { ascending: true });
+    const data = await supabaseQuery('categories', {
+        select: '*',
+        eq: { is_active: true },
+        order: { column: 'sort_order', ascending: true },
+        timeout: 2000
+    });
+    if (data) data.forEach(c => { categoryLabels[c.slug] = c.name; });
+}
 
-        if (error) throw error;
-
-        // Update categoryLabels from database
-        data.forEach(c => {
-            categoryLabels[c.slug] = c.name;
-        });
-    } catch (err) {
-        console.error('Error loading categories:', err);
+// ============================================
+// Load settings from Supabase (phone, email, etc.)
+// ============================================
+async function loadSettings() {
+    const data = await supabaseQuery('settings', {
+        select: '*',
+        timeout: 2000
+    });
+    if (data) {
+        data.forEach(s => { siteSettings[s.key] = s.value; });
+        applySettings();
     }
+}
+
+function applySettings() {
+    // Update phone numbers in footer/links if settings exist
+    if (siteSettings.store_phone) {
+        document.querySelectorAll('[data-setting-phone]').forEach(el => {
+            el.textContent = siteSettings.store_phone;
+        });
+        // Update WhatsApp links
+        const phone = siteSettings.store_phone.replace(/[^0-9]/g, '');
+        document.querySelectorAll('a[href*="wa.me"]').forEach(el => {
+            el.href = `https://wa.me/${phone}`;
+        });
+    }
+    if (siteSettings.store_email) {
+        document.querySelectorAll('[data-setting-email]').forEach(el => {
+            el.textContent = siteSettings.store_email;
+        });
+    }
+}
+
+// ============================================
+// REAL-TIME: Subscribe to changes
+// ============================================
+function setupRealtime() {
+    if (!supabase) return;
+
+    // Products real-time
+    supabase
+        .channel('products-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async (payload) => {
+            console.log('Realtime product change:', payload.eventType);
+            await loadProducts();
+            // Re-render current page
+            const grid = document.getElementById('productsGrid');
+            if (grid) renderProducts(products);
+            // Re-render phones on index
+            const phonesGrid = document.getElementById('phonesGrid');
+            if (phonesGrid) renderPhones();
+        })
+        .subscribe();
+
+    // Settings real-time (phone, email, etc.)
+    supabase
+        .channel('settings-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, async (payload) => {
+            console.log('Realtime settings change:', payload.eventType);
+            await loadSettings();
+        })
+        .subscribe();
+
+    // Categories real-time
+    supabase
+        .channel('categories-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, async (payload) => {
+            console.log('Realtime categories change:', payload.eventType);
+            await loadCategories();
+        })
+        .subscribe();
+}
+
+// ============================================
+// Render phones (index page)
+// ============================================
+function renderPhones() {
+    const phones = products.filter(p => p.category === 'telephone');
+    const grid = document.getElementById('phonesGrid');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+    if (phones.length === 0) {
+        grid.innerHTML = '<div class="empty-state-full"><i class="fas fa-mobile-alt"></i><h3>Aucun téléphone pour le moment</h3><p>Ajoutez des téléphones depuis l\'espace administrateur</p></div>';
+        return;
+    }
+
+    phones.forEach(p => {
+        const inW = wishlist.includes(p.id);
+        const card = document.createElement('div');
+        card.className = 'phone-card';
+        card.innerHTML = `
+            ${p.badge ? `<span class="phone-card-badge badge-${p.badge}">${p.badge === 'hot' ? '🔥 Best Seller' : p.badge === 'new' ? '✨ Nouveau' : '💰 Promo'}</span>` : ''}
+            <div class="phone-card-image" onclick="window.location.href='product.html?id=${p.id}'">
+                ${p.image ? `<img src="${p.image}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover">` : `<span>${p.emoji}</span>`}
+            </div>
+            <div class="phone-card-body">
+                <div class="phone-card-category">${categoryLabels[p.category] || p.category}</div>
+                <div class="phone-card-name">${p.name}</div>
+                <div class="phone-card-desc">${p.desc}</div>
+                <div class="phone-card-stock"><i class="fas fa-check-circle"></i> ${p.stock}</div>
+                <div class="phone-card-prices">
+                    <span class="phone-card-price">${p.price.toLocaleString('fr-DZ')} DA</span>
+                    ${p.oldPrice ? `<span class="phone-card-old-price">${p.oldPrice.toLocaleString('fr-DZ')} DA</span>` : ''}
+                </div>
+                <div class="phone-card-footer">
+                    <button class="btn btn-primary" onclick="event.stopPropagation();addToCart(${p.id})"><i class="fas fa-cart-plus"></i> Ajouter</button>
+                    <button class="btn btn-outline" onclick="event.stopPropagation();window.location.href='product.html?id=${p.id}'"><i class="fas fa-eye"></i> Voir</button>
+                    <button class="btn btn-outline ${inW ? 'wishlisted' : ''}" onclick="event.stopPropagation();toggleWishlist(${p.id})"><i class="fas fa-heart"></i></button>
+                </div>
+            </div>`;
+        grid.appendChild(card);
+    });
 }
 
 // ============================================
 // Initialize
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadCategories();
-    await loadProducts();
+    setDbStatus('loading');
+
+    await Promise.all([loadCategories(), loadProducts(), loadSettings()]);
+
     renderProducts(products);
     updateCartCount();
     updateWishlistCount();
+
+    hidePageLoader();
+
+    // Start real-time subscriptions
+    setupRealtime();
 
     // Header scroll effect
     window.addEventListener('scroll', () => {

@@ -119,3 +119,11 @@ SELECT
     (SELECT COUNT(*) FROM orders WHERE status = 'pending') as pending_orders,
     (SELECT COALESCE(SUM(total), 0) FROM orders WHERE payment_status = 'paid') as total_revenue,
     (SELECT COUNT(*) FROM orders WHERE created_at >= NOW() - INTERVAL '7 days') as orders_this_week;
+
+-- ============================================
+-- Enable REALTIME on tables
+-- ============================================
+ALTER PUBLICATION supabase_realtime ADD TABLE products;
+ALTER PUBLICATION supabase_realtime ADD TABLE settings;
+ALTER PUBLICATION supabase_realtime ADD TABLE categories;
+ALTER PUBLICATION supabase_realtime ADD TABLE orders;

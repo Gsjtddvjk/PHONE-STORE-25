@@ -6,22 +6,69 @@ let orders = [];
 let selectedProducts = [];
 let currentPage = 1;
 const ITEMS_PER_PAGE = 50;
-
-function getPass() { return localStorage.getItem(PASS_KEY) || DEFAULT_PASS; }
+let adminPass = null;
 
 // ============================================
-// Supabase Helpers
+// Page Loader
+// ============================================
+function hidePageLoader() {
+    const loader = document.getElementById('pageLoader');
+    if (loader) loader.classList.add('hidden');
+}
+
+function setDbStatus(status) {
+    const el = document.getElementById('dbStatus');
+    const txt = document.getElementById('dbStatusText');
+    if (!el || !txt) return;
+    el.className = 'db-status ' + status;
+    txt.textContent = { connected: 'En ligne', disconnected: 'Hors ligne', loading: 'Connexion...' }[status] || status;
+}
+
+// ============================================
+// Get admin password (Supabase first, localStorage fallback)
+// ============================================
+async function fetchAdminPass() {
+    if (!supabaseAdmin) {
+        adminPass = localStorage.getItem(PASS_KEY) || DEFAULT_PASS;
+        return;
+    }
+    try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3000);
+        const { data, error } = await supabaseAdmin
+            .from('settings')
+            .select('value')
+            .eq('key', 'admin_pass')
+            .single();
+        clearTimeout(timer);
+        if (error) throw error;
+        adminPass = data?.value || localStorage.getItem(PASS_KEY) || DEFAULT_PASS;
+    } catch (err) {
+        console.error('Error fetching password:', err);
+        adminPass = localStorage.getItem(PASS_KEY) || DEFAULT_PASS;
+    }
+}
+
+function getPass() { return adminPass || localStorage.getItem(PASS_KEY) || DEFAULT_PASS; }
+
+// ============================================
+// Supabase Helpers with timeout + cache
 // ============================================
 async function fetchProducts() {
+    const cacheKey = 'ipstore25_cache_admin_products';
+
     if (!supabaseAdmin) {
         adminProducts = JSON.parse(localStorage.getItem('ipstore25_products')) || [];
         return;
     }
     try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3000);
         const { data, error } = await supabaseAdmin
             .from('products')
             .select('*')
             .order('id', { ascending: true });
+        clearTimeout(timer);
         if (error) throw error;
         adminProducts = data.map(p => ({
             id: p.id,
@@ -35,22 +82,29 @@ async function fetchProducts() {
             desc: p.description || '',
             stock: p.stock || 'En stock'
         }));
+        localStorage.setItem(cacheKey, JSON.stringify(adminProducts));
     } catch (err) {
         console.error('Error:', err);
-        adminProducts = JSON.parse(localStorage.getItem('ipstore25_products')) || [];
+        const cached = localStorage.getItem(cacheKey);
+        adminProducts = cached ? JSON.parse(cached) : JSON.parse(localStorage.getItem('ipstore25_products')) || [];
     }
 }
 
 async function fetchOrders() {
+    const cacheKey = 'ipstore25_cache_admin_orders';
+
     if (!supabaseAdmin) {
         orders = JSON.parse(localStorage.getItem('ipstore25_orders')) || [];
         return;
     }
     try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3000);
         const { data, error } = await supabaseAdmin
             .from('orders')
             .select('*')
             .order('id', { ascending: false });
+        clearTimeout(timer);
         if (error) throw error;
         orders = data.map(o => ({
             id: o.id,
@@ -69,9 +123,11 @@ async function fetchOrders() {
             notes: o.notes,
             date: new Date(o.created_at).toLocaleDateString('fr-FR')
         }));
+        localStorage.setItem(cacheKey, JSON.stringify(orders));
     } catch (err) {
         console.error('Error:', err);
-        orders = JSON.parse(localStorage.getItem('ipstore25_orders')) || [];
+        const cached = localStorage.getItem(cacheKey);
+        orders = cached ? JSON.parse(cached) : JSON.parse(localStorage.getItem('ipstore25_orders')) || [];
     }
 }
 
@@ -90,16 +146,21 @@ async function saveProductToDB(product) {
             stock: product.stock
         };
 
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3000);
+
         if (product.dbId) {
             const { error } = await supabaseAdmin
                 .from('products')
                 .update(dbProduct)
                 .eq('id', product.dbId);
+            clearTimeout(timer);
             if (error) throw error;
         } else {
             const { error } = await supabaseAdmin
                 .from('products')
                 .insert([dbProduct]);
+            clearTimeout(timer);
             if (error) throw error;
         }
         return true;
@@ -112,10 +173,13 @@ async function saveProductToDB(product) {
 async function deleteProductFromDB(id) {
     if (!supabaseAdmin) return true;
     try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3000);
         const { error } = await supabaseAdmin
             .from('products')
             .delete()
             .eq('id', id);
+        clearTimeout(timer);
         if (error) throw error;
         return true;
     } catch (err) {
@@ -127,16 +191,44 @@ async function deleteProductFromDB(id) {
 async function updateOrderStatusDB(id, status) {
     if (!supabaseAdmin) return true;
     try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3000);
         const { error } = await supabaseAdmin
             .from('orders')
             .update({ status: status })
             .eq('id', id);
+        clearTimeout(timer);
         if (error) throw error;
         return true;
     } catch (err) {
         console.error('Error:', err);
         return false;
     }
+}
+
+// ============================================
+// REAL-TIME: Admin subscriptions
+// ============================================
+function setupAdminRealtime() {
+    if (!supabaseAdmin) return;
+
+    supabaseAdmin
+        .channel('admin-products')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => {
+            await fetchProducts();
+            renderProductsTable();
+            renderDashboard();
+        })
+        .subscribe();
+
+    supabaseAdmin
+        .channel('admin-orders')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async () => {
+            await fetchOrders();
+            renderOrdersTable();
+            renderDashboard();
+        })
+        .subscribe();
 }
 
 // ============================================
@@ -154,7 +246,7 @@ function adminLogin() {
     }
 }
 
-function changePassword() {
+async function changePassword() {
     const current = document.getElementById('currentPassword').value;
     const newPass = document.getElementById('newPassword').value.trim();
     const confirmPass = document.getElementById('confirmPassword').value.trim();
@@ -171,7 +263,23 @@ function changePassword() {
         showToast('Les mots de passe ne correspondent pas', 'error');
         return;
     }
+
+    // Save to Supabase settings table
+    if (supabaseAdmin) {
+        try {
+            const { error } = await supabaseAdmin
+                .from('settings')
+                .upsert({ key: 'admin_pass', value: newPass }, { onConflict: 'key' });
+            if (error) throw error;
+        } catch (err) {
+            console.error('Error saving password to Supabase:', err);
+        }
+    }
+
+    // Also save to localStorage as fallback
     localStorage.setItem(PASS_KEY, newPass);
+    adminPass = newPass;
+
     document.getElementById('currentPassword').value = '';
     document.getElementById('newPassword').value = '';
     document.getElementById('confirmPassword').value = '';
@@ -179,11 +287,12 @@ function changePassword() {
 }
 
 async function initAdmin() {
-    await fetchProducts();
-    await fetchOrders();
+    await fetchAdminPass();
+    await Promise.all([fetchProducts(), fetchOrders()]);
     renderDashboard();
     renderProductsTable();
     renderOrdersTable();
+    setupAdminRealtime();
 }
 
 function showSection(name) {
@@ -382,7 +491,6 @@ async function handleImageUpload(e) {
     };
     reader.readAsDataURL(file);
 
-    // Upload to Cloudinary if configured
     const cn = localStorage.getItem('ipstore25_cloudinary_name');
     const cp = localStorage.getItem('ipstore25_cloudinary_preset');
     if (cn && cp) {
@@ -515,7 +623,7 @@ function importData(e) {
             const d = JSON.parse(ev.target.result);
             if (d.products) { adminProducts = d.products; saveProducts(); }
             if (d.orders) { orders = d.orders; localStorage.setItem('ipstore25_orders', JSON.stringify(orders)); }
-            if (d.settings && d.settings.password) { localStorage.setItem(PASS_KEY, d.settings.password); }
+            if (d.settings && d.settings.password) { localStorage.setItem(PASS_KEY, d.settings.password); adminPass = d.settings.password; }
             renderProductsTable(); renderOrdersTable(); renderDashboard();
             showToast('Importé!', 'success');
         } catch (err) { showToast('Erreur', 'error'); }

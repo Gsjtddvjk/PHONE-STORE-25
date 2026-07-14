@@ -58,6 +58,13 @@
     </style>
 </head>
 <body>
+    <div class="page-loader" id="pageLoader">
+        <div class="loader-logo">📱</div>
+        <div class="loader-text">iPhone<span>Store</span>25</div>
+        <div class="loader-bar"><div class="loader-bar-inner"></div></div>
+        <div class="loader-status">Connexion en cours...</div>
+    </div>
+
     <header class="header">
         <div class="container header-inner">
             <a href="index.html" class="logo"><span class="logo-icon">📱</span><span class="logo-text">iPhone<span class="logo-highlight">Store</span><span class="logo-num">25</span></span></a>
@@ -66,6 +73,10 @@
                 <button onclick="window.location.href='index.html'"><i class="fas fa-search"></i></button>
             </div>
             <div class="header-actions">
+                <div class="db-status loading" id="dbStatus">
+                    <span class="db-status-dot"></span>
+                    <span id="dbStatusText">Connexion...</span>
+                </div>
                 <a href="admin.html" class="header-btn" title="Admin"><i class="fas fa-cog"></i></a>
                 <button class="header-btn cart-btn" onclick="openCart()"><i class="fas fa-shopping-cart"></i><span class="badge" id="cartCount">0</span></button>
                 <button class="header-btn" onclick="openWishlist()"><i class="fas fa-heart"></i><span class="badge" id="wishlistCount">0</span></button>
@@ -146,21 +157,66 @@
         let currentProduct = null, detailQty = 1;
         const catLabels = { telephone:'Téléphones', ecran:'Écrans', batterie:'Batteries', camera:'Caméras', boitier:'Boîtiers', accessoire:'Accessoires', outils:'Outils' };
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            setDbStatus('loading');
             const id = parseInt(new URLSearchParams(window.location.search).get('id'));
-            if (id) loadProduct(id);
+            if (id) await loadProduct(id);
+            hidePageLoader();
         });
 
-        function loadProduct(id) {
+        async function loadProduct(id) {
+            // Try Supabase first
+            if (supabase) {
+                try {
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), 3000);
+                    const { data, error } = await supabase
+                        .from('products')
+                        .select('*')
+                        .eq('id', id)
+                        .single();
+                    clearTimeout(timer);
+                    if (!error && data) {
+                        currentProduct = {
+                            id: data.id,
+                            name: data.name,
+                            category: data.category_id,
+                            price: parseFloat(data.price),
+                            oldPrice: data.old_price ? parseFloat(data.old_price) : null,
+                            emoji: data.emoji || '📱',
+                            image: data.image_url,
+                            badge: data.badge,
+                            desc: data.description || '',
+                            stock: data.stock || 'En stock'
+                        };
+                        setDbStatus('connected');
+                        renderProduct();
+                        loadRelated();
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Supabase error:', err);
+                }
+            }
+            // Fallback to localStorage
             const all = JSON.parse(localStorage.getItem('ipstore25_products')) || [];
             currentProduct = all.find(p => p.id === id);
+            setDbStatus(currentProduct ? 'connected' : 'disconnected');
             if (!currentProduct) {
                 document.querySelector('.detail-page .container').innerHTML = '<div class="empty-state-full"><i class="fas fa-exclamation-triangle"></i><h3>Produit non trouvé</h3><a href="index.html" class="btn btn-primary" style="margin-top:16px"><i class="fas fa-home"></i> Retour</a></div>';
                 return;
             }
+            renderProduct();
+            loadRelated();
+        }
+
+        function renderProduct() {
+            if (!currentProduct) return;
             document.title = currentProduct.name + ' - iPhone Store 25';
             document.getElementById('breadcrumbName').textContent = currentProduct.name;
-            document.getElementById('detailImage').innerHTML = `<span>${currentProduct.emoji}</span>`;
+            document.getElementById('detailImage').innerHTML = currentProduct.image
+                ? `<img src="${currentProduct.image}" alt="" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:12px">`
+                : `<span>${currentProduct.emoji}</span>`;
             document.getElementById('detailCategory').textContent = catLabels[currentProduct.category] || currentProduct.category;
             document.getElementById('detailName').textContent = currentProduct.name;
             document.getElementById('detailPrice').textContent = currentProduct.price.toLocaleString('fr-DZ') + ' DA';
@@ -169,11 +225,35 @@
             op.style.display = currentProduct.oldPrice ? 'block' : 'none';
             document.getElementById('detailStock').innerHTML = '<i class="fas fa-check-circle"></i> ' + currentProduct.stock;
             document.getElementById('detailDesc').textContent = currentProduct.desc;
+        }
 
-            const related = all.filter(p => p.category === currentProduct.category && p.id !== currentProduct.id).slice(0, 4);
+        async function loadRelated() {
+            if (!currentProduct) return;
+            let related = [];
+            if (supabase) {
+                try {
+                    const { data } = await supabase
+                        .from('products')
+                        .select('*')
+                        .eq('category_id', currentProduct.category)
+                        .eq('is_active', true)
+                        .neq('id', currentProduct.id)
+                        .limit(4);
+                    if (data) {
+                        related = data.map(p => ({
+                            id: p.id, name: p.name, category: p.category_id,
+                            price: parseFloat(p.price), emoji: p.emoji || '📱', image: p.image_url
+                        }));
+                    }
+                } catch {}
+            }
+            if (related.length === 0) {
+                const all = JSON.parse(localStorage.getItem('ipstore25_products')) || [];
+                related = all.filter(p => p.category === currentProduct.category && p.id !== currentProduct.id).slice(0, 4);
+            }
             document.getElementById('relatedProducts').innerHTML = related.map(p => `
                 <div class="product-card" onclick="window.location.href='product.html?id=${p.id}'">
-                    <div class="product-image"><span class="product-emoji">${p.emoji}</span></div>
+                    <div class="product-image">${p.image ? `<img src="${p.image}" alt="" style="width:100%;height:100%;object-fit:cover">` : `<span class="product-emoji">${p.emoji}</span>`}</div>
                     <div class="product-info">
                         <div class="product-cat">${catLabels[p.category]||p.category}</div>
                         <div class="product-name">${p.name}</div>

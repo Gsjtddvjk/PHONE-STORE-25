@@ -1026,6 +1026,106 @@ body {
     color: var(--text);
 }
 
+/* ============================================
+   Page Loader
+   ============================================ */
+.page-loader {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    z-index: 99999; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 24px;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.page-loader.hidden {
+    opacity: 0; visibility: hidden; pointer-events: none;
+}
+
+.loader-logo {
+    font-size: 56px;
+    animation: loaderPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes loaderPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+}
+
+.loader-text {
+    font-size: 22px; font-weight: 800; color: var(--text);
+    letter-spacing: -0.5px;
+}
+
+.loader-text span { color: var(--primary); }
+
+.loader-bar {
+    width: 200px; height: 4px; background: rgba(0,0,0,0.06);
+    border-radius: 4px; overflow: hidden;
+}
+
+.loader-bar-inner {
+    height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 4px; animation: loaderProgress 2s ease-in-out forwards;
+}
+
+@keyframes loaderProgress {
+    0% { width: 0%; }
+    50% { width: 70%; }
+    100% { width: 100%; }
+}
+
+.loader-status {
+    font-size: 12px; color: var(--text-muted); font-weight: 500;
+}
+
+/* ============================================
+   DB Status Badge
+   ============================================ */
+.db-status {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+    background: rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.06);
+    transition: all 0.3s ease;
+    cursor: default;
+    white-space: nowrap;
+}
+
+.db-status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.db-status.connected .db-status-dot {
+    background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.5);
+    animation: dotPulse 2s ease-in-out infinite;
+}
+
+.db-status.connected { color: #059669; border-color: rgba(16,185,129,0.2); }
+
+.db-status.disconnected .db-status-dot {
+    background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.5);
+}
+
+.db-status.disconnected { color: #dc2626; border-color: rgba(239,68,68,0.2); }
+
+.db-status.loading .db-status-dot {
+    background: #f59e0b; animation: dotBlink 0.8s ease-in-out infinite;
+}
+
+.db-status.loading { color: #d97706; border-color: rgba(245,158,11,0.2); }
+
+@keyframes dotPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+@keyframes dotBlink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.7); }
+}
+
 /* Load More */
 .load-more-container {
     text-align: center; padding: 32px 0;
