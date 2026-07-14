@@ -1,5 +1,7 @@
 const PASS_KEY = 'ipstore25_admin_pass';
 const DEFAULT_PASS = 'admin123';
+const CLOUDINARY_CLOUD = 'qqftt7fm';
+const CLOUDINARY_PRESET = 'unsigned';
 
 let adminProducts = [];
 let orders = [];
@@ -289,7 +291,7 @@ async function changePassword() {
 
 async function initAdmin() {
     await fetchAdminPass();
-    await Promise.all([fetchProducts(), fetchOrders()]);
+    await Promise.all([fetchProducts(), fetchOrders(), loadSettingsIntoForm()]);
     renderDashboard();
     renderProductsTable();
     renderOrdersTable();
@@ -304,6 +306,7 @@ function showSection(name) {
     if (name === 'dashboard') renderDashboard();
     if (name === 'products') renderProductsTable();
     if (name === 'orders') renderOrdersTable();
+    if (name === 'settings') loadSettingsIntoForm();
 }
 
 function getCatLabel(c) {
@@ -492,28 +495,23 @@ async function handleImageUpload(e) {
     };
     reader.readAsDataURL(file);
 
-    const cn = localStorage.getItem('ipstore25_cloudinary_name');
-    const cp = localStorage.getItem('ipstore25_cloudinary_preset');
-    if (cn && cp) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', cp);
-        try {
-            const res = await fetch(`https://api.cloudinary.com/v1_1/${cn}/image/upload`, { method: 'POST', body: formData });
-            const data = await res.json();
-            loader.style.display = 'none';
-            if (data.secure_url) {
-                document.getElementById('prodImageUrl').value = data.secure_url;
-                preview.innerHTML = `<img src="${data.secure_url}" alt="">`;
-                showToast('Image uploadée!', 'success');
-            }
-        } catch (err) {
-            loader.style.display = 'none';
-            showToast('Erreur upload', 'error');
-        }
-    } else {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_PRESET);
+    try {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: 'POST', body: formData });
+        const data = await res.json();
         loader.style.display = 'none';
-        showToast('Configurez Cloudinary pour l\'upload', 'error');
+        if (data.secure_url) {
+            document.getElementById('prodImageUrl').value = data.secure_url;
+            preview.innerHTML = `<img src="${data.secure_url}" alt="">`;
+            showToast('Image uploadée!', 'success');
+        } else {
+            showToast('Erreur upload: ' + (data.error?.message || 'Inconnue'), 'error');
+        }
+    } catch (err) {
+        loader.style.display = 'none';
+        showToast('Erreur upload', 'error');
     }
 }
 
@@ -605,7 +603,56 @@ async function changeOrderStatus(id) {
 }
 
 function saveProducts() { localStorage.setItem('ipstore25_products', JSON.stringify(adminProducts)); }
-function saveSettings() { showToast('Enregistré!', 'success'); }
+
+async function saveSettings() {
+    const name = document.getElementById('storeName').value.trim();
+    const email = document.getElementById('storeEmail').value.trim();
+    const phone = document.getElementById('storePhone').value.trim();
+
+    if (!_db.admin) {
+        showToast('Pas de connexion DB', 'error');
+        return;
+    }
+
+    try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 10000);
+
+        const updates = [
+            _db.admin.from('settings').upsert({ key: 'store_name', value: name }, { onConflict: 'key' }),
+            _db.admin.from('settings').upsert({ key: 'store_email', value: email }, { onConflict: 'key' }),
+            _db.admin.from('settings').upsert({ key: 'store_phone', value: phone }, { onConflict: 'key' })
+        ];
+
+        const results = await Promise.all(updates);
+        clearTimeout(timer);
+
+        const hasError = results.some(r => r.error);
+        if (hasError) throw results.find(r => r.error).error;
+
+        showToast('Paramètres enregistrés!', 'success');
+    } catch (err) {
+        console.error('Error saving settings:', err);
+        showToast('Erreur de sauvegarde', 'error');
+    }
+}
+
+async function loadSettingsIntoForm() {
+    if (!_db.admin) return;
+    try {
+        const { data, error } = await _db.admin.from('settings').select('key, value').in('key', ['store_name', 'store_email', 'store_phone']);
+        if (error) throw error;
+        if (data) {
+            data.forEach(s => {
+                if (s.key === 'store_name' && s.value) document.getElementById('storeName').value = s.value;
+                if (s.key === 'store_email' && s.value) document.getElementById('storeEmail').value = s.value;
+                if (s.key === 'store_phone' && s.value) document.getElementById('storePhone').value = s.value;
+            });
+        }
+    } catch (err) {
+        console.error('Error loading settings:', err);
+    }
+}
 
 function exportData() {
     const d = { products: adminProducts, orders, settings: { password: getPass() }, date: new Date().toISOString() };

@@ -125,12 +125,6 @@
                             <div class="form-group"><label>Confirmer</label><input type="password" id="confirmPassword" placeholder="Confirmer le mot de passe"></div>
                             <button class="btn btn-primary" onclick="changePassword()"><i class="fas fa-lock"></i> Changer</button>
                         </div></div>
-                        <div class="card"><div class="card-header"><h3>Cloudinary (Images)</h3></div><div class="settings-form">
-                            <p class="setting-desc">Configurez Cloudinary pour stocker les images des produits en ligne.</p>
-                            <div class="form-group"><label>Cloud Name</label><input type="text" id="cloudinaryName" placeholder="Votre Cloud Name" value=""></div>
-                            <div class="form-group"><label>Upload Preset</label><input type="text" id="cloudinaryPreset" placeholder="Votre Upload Preset" value=""></div>
-                            <button class="btn btn-primary" onclick="saveCloudinaryConfig()"><i class="fas fa-save"></i> Enregistrer</button>
-                        </div></div>
                         <div class="card"><div class="card-header"><h3>Backup</h3></div><div class="settings-form">
                             <p class="setting-desc">Exportez ou importez les données du magasin.</p>
                             <button class="btn btn-primary" onclick="exportData()"><i class="fas fa-download"></i> Exporter</button>
@@ -185,23 +179,10 @@
     <script src="admin-script.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            // Page loader
             setDbStatus('loading');
 
-            // Load Cloudinary config
-            const cn = localStorage.getItem('ipstore25_cloudinary_name');
-            const cp = localStorage.getItem('ipstore25_cloudinary_preset');
-            if (cn) document.getElementById('cloudinaryName').value = cn;
-            if (cp) document.getElementById('cloudinaryPreset').value = cp;
-            if (cn && cp) {
-                CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${cn}/image/upload`;
-                CLOUDINARY_UPLOAD_PRESET = cp;
-            }
-
-            // Fetch password from Supabase
             await fetchAdminPass();
 
-            // Update DB status
             if (_db.admin) {
                 try {
                     const controller = new AbortController();
@@ -214,21 +195,8 @@
                 setDbStatus('disconnected');
             }
 
-            // Hide loader
             hidePageLoader();
         });
-
-        function saveCloudinaryConfig() {
-            const cn = document.getElementById('cloudinaryName').value.trim();
-            const cp = document.getElementById('cloudinaryPreset').value.trim();
-            if (cn) localStorage.setItem('ipstore25_cloudinary_name', cn);
-            if (cp) localStorage.setItem('ipstore25_cloudinary_preset', cp);
-            if (cn && cp) {
-                CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${cn}/image/upload`;
-                CLOUDINARY_UPLOAD_PRESET = cp;
-            }
-            showToast('Cloudinary configuré!', 'success');
-        }
     </script>
 </body>
 </html>

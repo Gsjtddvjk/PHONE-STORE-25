@@ -16,30 +16,30 @@
         .filter-tags { display: flex; gap: 10px; flex-wrap: wrap; flex: 1; }
         .filter-tag {
             padding: 10px 20px; border-radius: 12px;
-            border: 1px solid var(--border);
-            background: var(--bg-glass);
+            border: 1px solid rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.5);
             backdrop-filter: blur(10px);
             cursor: pointer; font-size: 13px; font-weight: 600;
             transition: var(--transition); white-space: nowrap; color: var(--text-secondary);
         }
         .filter-tag:hover {
-            background: var(--bg-glass);
-            border-color: rgba(var(--primary-rgb), 0.5);
+            background: rgba(255,255,255,0.6);
+            border-color: rgba(184,198,219,0.5);
             color: var(--text);
         }
         .filter-tag.active {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: linear-gradient(135deg, #b8c6db, #9bb0c9);
             color: white; border-color: transparent;
-            box-shadow: 0 4px 20px rgba(var(--primary-rgb), 0.3);
+            box-shadow: 0 4px 20px rgba(184,198,219,0.35);
         }
         .products-count { font-size: 14px; color: var(--text-muted); white-space: nowrap; }
         .sort-select {
-            padding: 10px 16px; border: 1px solid var(--border);
+            padding: 10px 16px; border: 1px solid rgba(255,255,255,0.6);
             border-radius: var(--radius-xs); font-size: 13px;
-            background: var(--bg-glass); color: var(--text);
+            background: rgba(255,255,255,0.5); color: var(--text);
             cursor: pointer; outline: none; font-family: inherit;
         }
-        .sort-select:focus { border-color: rgba(var(--primary-rgb), 0.5); }
+        .sort-select:focus { border-color: rgba(184,198,219,0.5); }
         .sort-select option { background: var(--bg-secondary); color: var(--text); }
         @media (max-width: 768px) {
             .products-header h1 { font-size: 26px; }
@@ -162,7 +162,7 @@
 
     <div class="fab-container">
         <a href="https://wa.me/213770579244" target="_blank" class="fab fab-whatsapp" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-        <a href="https://instagram.com/iphonestore25" target="_blank" class="fab fab-instagram" title="Instagram"><i class="fab fa-instagram"></i></a>
+        <a href="https://www.instagram.com/iphone_stor_25?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" class="fab fab-instagram" title="Instagram"><i class="fab fa-instagram"></i></a>
         <button class="fab fab-top" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
     </div>
 

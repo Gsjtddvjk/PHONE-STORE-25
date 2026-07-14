@@ -11,9 +11,9 @@
     <style>
         .phones-section { padding: 80px 0; position: relative; z-index: 1; }
         .phone-card {
-            background: rgba(255,255,255,0.7);
+            background: rgba(255,255,255,0.6);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.8);
+            border: 1px solid rgba(255,255,255,0.7);
             border-radius: 20px;
             overflow: hidden;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -22,7 +22,7 @@
         }
         .phone-card:hover {
             transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 20px 60px rgba(99,102,241,0.2);
+            box-shadow: 0 20px 60px rgba(180,195,215,0.2);
         }
         .phone-card-badge {
             position: absolute;
@@ -41,7 +41,7 @@
         .badge-sale { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
         .phone-card-image {
             height: 220px;
-            background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
+            background: linear-gradient(135deg, rgba(230,238,248,0.4) 0%, rgba(220,230,245,0.2) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -54,7 +54,7 @@
             position: absolute;
             width: 200px;
             height: 200px;
-            background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(184,198,219,0.12) 0%, transparent 70%);
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -65,7 +65,7 @@
         .phone-card-category {
             font-size: 11px;
             font-weight: 600;
-            color: var(--primary);
+            color: #8fa8c4;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 8px;
@@ -96,7 +96,9 @@
         .phone-card-price {
             font-size: 22px;
             font-weight: 800;
-            color: var(--primary);
+            background: linear-gradient(135deg, #8fa8c4, #a8bdd4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         .phone-card-old-price {
             font-size: 14px;
@@ -125,7 +127,7 @@
         .phone-card-stock i { font-size: 10px; }
 
         .promo-banner {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+            background: linear-gradient(135deg, #b8c6db 0%, #9bb0c9 50%, #8fa8c4 100%);
             border-radius: 20px;
             padding: 40px;
             color: white;
@@ -156,8 +158,8 @@
         .promo-content { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
         .promo-text h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
         .promo-text p { font-size: 15px; opacity: 0.9; margin-bottom: 20px; }
-        .promo-btn { background: white; color: var(--primary); padding: 14px 32px; border-radius: 12px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s; }
-        .promo-btn:hover { transform: scale(1.05); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .promo-btn { background: white; color: #8fa8c4; padding: 14px 32px; border-radius: 12px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s; }
+        .promo-btn:hover { transform: scale(1.05); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
         .promo-emoji { font-size: 80px; position: relative; z-index: 1; }
 
         @media (max-width: 768px) {
@@ -346,7 +348,7 @@
                     <p>Votre destination premium pour les pièces iPhone de qualité en Algérie.</p>
                     <div class="social-links">
                         <a href="https://facebook.com/iphonestore25" target="_blank"><i class="fab fa-facebook-f"></i></a>
-                        <a href="https://instagram.com/iphonestore25" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.instagram.com/iphone_stor_25?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank"><i class="fab fa-instagram"></i></a>
                         <a href="https://tiktok.com/@iphonestore25" target="_blank"><i class="fab fa-tiktok"></i></a>
                         <a href="https://wa.me/213770579244" target="_blank"><i class="fab fa-whatsapp"></i></a>
                     </div>
@@ -404,53 +406,13 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <div class="fab-container">
-        <a href="https://wa.me/213770579244" target="_blank" class="fab fab-whatsapp" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-        <a href="https://instagram.com/iphonestore25" target="_blank" class="fab fab-instagram" title="Instagram"><i class="fab fa-instagram"></i></a>
+        <a href="https://wa.me/213770579244" target="_blank" class="fab fab-whatsapp" title="WhatsApp" data-setting-whatsapp><i class="fab fa-whatsapp"></i></a>
+        <a href="https://www.instagram.com/iphone_stor_25?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" class="fab fab-instagram" title="Instagram"><i class="fab fa-instagram"></i></a>
         <button class="fab fab-top" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script src="script.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // script.js already loaded products, just render phones section
-            const phones = products.filter(p => p.category === 'telephone');
-            const grid = document.getElementById('phonesGrid');
-            if (!grid) return;
-
-            if (phones.length === 0) {
-                grid.innerHTML = '<div class="empty-state-full"><i class="fas fa-mobile-alt"></i><h3>Aucun téléphone pour le moment</h3><p>Ajoutez des téléphones depuis l\'espace administrateur</p></div>';
-                return;
-            }
-
-            phones.forEach(p => {
-                const inW = wishlist.includes(p.id);
-                const card = document.createElement('div');
-                card.className = 'phone-card';
-                card.innerHTML = `
-                    ${p.badge ? `<span class="phone-card-badge badge-${p.badge}">${p.badge === 'hot' ? '🔥 Best Seller' : p.badge === 'new' ? '✨ Nouveau' : '💰 Promo'}</span>` : ''}
-                    <div class="phone-card-image" onclick="window.location.href='product.html?id=${p.id}'">
-                        ${p.image ? `<img src="${p.image}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover">` : `<span>${p.emoji}</span>`}
-                    </div>
-                    <div class="phone-card-body">
-                        <div class="phone-card-category">${categoryLabels[p.category] || p.category}</div>
-                        <div class="phone-card-name">${p.name}</div>
-                        <div class="phone-card-desc">${p.desc}</div>
-                        <div class="phone-card-stock"><i class="fas fa-check-circle"></i> ${p.stock}</div>
-                        <div class="phone-card-prices">
-                            <span class="phone-card-price">${p.price.toLocaleString('fr-DZ')} DA</span>
-                            ${p.oldPrice ? `<span class="phone-card-old-price">${p.oldPrice.toLocaleString('fr-DZ')} DA</span>` : ''}
-                        </div>
-                        <div class="phone-card-footer">
-                            <button class="btn btn-primary" onclick="event.stopPropagation();addToCart(${p.id})"><i class="fas fa-cart-plus"></i> Ajouter</button>
-                            <button class="btn btn-outline" onclick="event.stopPropagation();window.location.href='product.html?id=${p.id}'"><i class="fas fa-eye"></i> Voir</button>
-                            <button class="btn btn-outline ${inW ? 'wishlisted' : ''}" onclick="event.stopPropagation();toggleWishlist(${p.id})"><i class="fas fa-heart"></i></button>
-                        </div>
-                    </div>`;
-                grid.appendChild(card);
-            });
-        });
-    </script>
 </body>
 </html>

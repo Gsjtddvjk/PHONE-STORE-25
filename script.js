@@ -78,6 +78,8 @@ async function supabaseQuery(table, options = {}) {
     }
 }
 
+let dbConnected = false;
+
 // ============================================
 // Load products from Supabase
 // ============================================
@@ -102,9 +104,11 @@ async function loadProducts() {
             desc: p.description || '',
             stock: p.stock || 'En stock'
         }));
+        dbConnected = true;
         setDbStatus('connected');
     } else {
         products = JSON.parse(localStorage.getItem('ipstore25_products')) || [];
+        dbConnected = false;
         setDbStatus('disconnected');
     }
 }
@@ -137,20 +141,42 @@ async function loadSettings() {
 }
 
 function applySettings() {
-    // Update phone numbers in footer/links if settings exist
     if (siteSettings.store_phone) {
+        const phone = siteSettings.store_phone;
+        const phoneClean = phone.replace(/[^0-9]/g, '');
+
         document.querySelectorAll('[data-setting-phone]').forEach(el => {
-            el.textContent = siteSettings.store_phone;
+            el.textContent = phone;
         });
-        // Update WhatsApp links
-        const phone = siteSettings.store_phone.replace(/[^0-9]/g, '');
+
+        document.querySelectorAll('[data-setting-whatsapp]').forEach(el => {
+            el.href = `https://wa.me/${phoneClean}`;
+        });
+
         document.querySelectorAll('a[href*="wa.me"]').forEach(el => {
-            el.href = `https://wa.me/${phone}`;
+            el.href = `https://wa.me/${phoneClean}`;
+        });
+
+        document.querySelectorAll('a[href^="tel:"]').forEach(el => {
+            el.href = `tel:${phoneClean}`;
         });
     }
+
     if (siteSettings.store_email) {
+        const email = siteSettings.store_email;
+
         document.querySelectorAll('[data-setting-email]').forEach(el => {
-            el.textContent = siteSettings.store_email;
+            el.textContent = email;
+        });
+
+        document.querySelectorAll('a[href^="mailto:"]').forEach(el => {
+            el.href = `mailto:${email}`;
+        });
+    }
+
+    if (siteSettings.store_name) {
+        document.querySelectorAll('[data-setting-name]').forEach(el => {
+            el.textContent = siteSettings.store_name;
         });
     }
 }
@@ -245,13 +271,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     await Promise.all([loadCategories(), loadProducts(), loadSettings()]);
 
     renderProducts(products);
+    renderPhones();
     updateCartCount();
     updateWishlistCount();
 
-    hidePageLoader();
-
-    // Start real-time subscriptions
     setupRealtime();
+
+    if (dbConnected) {
+        hidePageLoader();
+    } else {
+        document.querySelector('.loader-status').textContent = 'Hors ligne - affichage des données en cache';
+        setTimeout(hidePageLoader, 1500);
+    }
 
     // Header scroll effect
     window.addEventListener('scroll', () => {
