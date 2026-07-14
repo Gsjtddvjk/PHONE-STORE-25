@@ -34,20 +34,24 @@ function hidePageLoader() {
 }
 
 // ============================================
-// Supabase query with FAST timeout + cache fallback
+// Supabase query with timeout + cache fallback
 // ============================================
 async function supabaseQuery(table, options = {}) {
-    const { select = '*', eq, order, limit, timeout = 3000 } = options;
+    const { select = '*', eq, order, limit, timeout = 10000 } = options;
     const cacheKey = `ipstore25_cache_${table}`;
 
     if (!supabase) {
+        console.warn('Supabase client not available, using cache');
         const cached = localStorage.getItem(cacheKey);
         if (cached) return JSON.parse(cached);
         return null;
     }
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeout);
+    const timer = setTimeout(() => {
+        controller.abort();
+        console.warn(`Query timeout (${table}) after ${timeout}ms`);
+    }, timeout);
 
     try {
         let query = supabase.from(table).select(select);
@@ -63,7 +67,7 @@ async function supabaseQuery(table, options = {}) {
         return data;
     } catch (err) {
         clearTimeout(timer);
-        console.error(`Query error (${table}):`, err);
+        console.error(`Query error (${table}):`, err.message || err);
         const cached = localStorage.getItem(cacheKey);
         if (cached) return JSON.parse(cached);
         return null;
@@ -78,7 +82,7 @@ async function loadProducts() {
         select: '*',
         eq: { is_active: true },
         order: { column: 'sort_order', ascending: true },
-        timeout: 3000
+        timeout: 10000
     });
 
     if (data) {
@@ -109,7 +113,7 @@ async function loadCategories() {
         select: '*',
         eq: { is_active: true },
         order: { column: 'sort_order', ascending: true },
-        timeout: 2000
+        timeout: 10000
     });
     if (data) data.forEach(c => { categoryLabels[c.slug] = c.name; });
 }
@@ -120,7 +124,7 @@ async function loadCategories() {
 async function loadSettings() {
     const data = await supabaseQuery('settings', {
         select: '*',
-        timeout: 2000
+        timeout: 10000
     });
     if (data) {
         data.forEach(s => { siteSettings[s.key] = s.value; });

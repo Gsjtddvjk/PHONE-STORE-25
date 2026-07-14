@@ -34,7 +34,7 @@ async function fetchAdminPass() {
     }
     try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 3000);
+        const timer = setTimeout(() => controller.abort(), 10000);
         const { data, error } = await supabaseAdmin
             .from('settings')
             .select('value')
@@ -63,7 +63,7 @@ async function fetchProducts() {
     }
     try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 3000);
+        const timer = setTimeout(() => controller.abort(), 10000);
         const { data, error } = await supabaseAdmin
             .from('products')
             .select('*')
@@ -99,7 +99,7 @@ async function fetchOrders() {
     }
     try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 3000);
+        const timer = setTimeout(() => controller.abort(), 10000);
         const { data, error } = await supabaseAdmin
             .from('orders')
             .select('*')
@@ -147,7 +147,7 @@ async function saveProductToDB(product) {
         };
 
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 3000);
+        const timer = setTimeout(() => controller.abort(), 10000);
 
         if (product.dbId) {
             const { error } = await supabaseAdmin
@@ -174,7 +174,7 @@ async function deleteProductFromDB(id) {
     if (!supabaseAdmin) return true;
     try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 3000);
+        const timer = setTimeout(() => controller.abort(), 10000);
         const { error } = await supabaseAdmin
             .from('products')
             .delete()
@@ -192,7 +192,7 @@ async function updateOrderStatusDB(id, status) {
     if (!supabaseAdmin) return true;
     try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 3000);
+        const timer = setTimeout(() => controller.abort(), 10000);
         const { error } = await supabaseAdmin
             .from('orders')
             .update({ status: status })

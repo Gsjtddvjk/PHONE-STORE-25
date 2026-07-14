@@ -205,7 +205,7 @@
             if (supabaseAdmin) {
                 try {
                     const controller = new AbortController();
-                    const timer = setTimeout(() => controller.abort(), 3000);
+                    const timer = setTimeout(() => controller.abort(), 10000);
                     const { error } = await supabaseAdmin.from('settings').select('key').limit(1);
                     clearTimeout(timer);
                     setDbStatus(error ? 'disconnected' : 'connected');
