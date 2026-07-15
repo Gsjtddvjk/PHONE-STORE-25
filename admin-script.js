@@ -1,7 +1,7 @@
 const PASS_KEY = 'ipstore25_admin_pass';
 const DEFAULT_PASS = 'admin123';
 const CLOUDINARY_CLOUD = 'qqftt7fm';
-const CLOUDINARY_PRESET = 'unsigned';
+const CLOUDINARY_PRESET = 'ipstore25_preset';
 
 let adminProducts = [];
 let orders = [];
@@ -267,21 +267,31 @@ async function changePassword() {
         return;
     }
 
-    // Save to Supabase settings table
+    // Save to Supabase first
+    let savedToDb = false;
     if (_db.admin) {
         try {
-            const { error } = await _db.admin
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 10000);
+            const { data, error } = await _db.admin
                 .from('settings')
-                .upsert({ key: 'admin_pass', value: newPass }, { onConflict: 'key' });
+                .upsert({ key: 'admin_pass', value: newPass }, { onConflict: 'key' })
+                .select();
+            clearTimeout(timer);
             if (error) throw error;
+            savedToDb = true;
         } catch (err) {
             console.error('Error saving password to Supabase:', err);
+            showToast('Erreur sauvegarde DB: ' + (err.message || err), 'error');
+            return;
         }
     }
 
-    // Also save to localStorage as fallback
-    localStorage.setItem(PASS_KEY, newPass);
-    adminPass = newPass;
+    // Only update locally if DB write succeeded
+    if (savedToDb) {
+        localStorage.setItem(PASS_KEY, newPass);
+        adminPass = newPass;
+    }
 
     document.getElementById('currentPassword').value = '';
     document.getElementById('newPassword').value = '';
@@ -485,9 +495,15 @@ async function handleImageUpload(e) {
         return;
     }
 
+    if (!file.type.startsWith('image/')) {
+        showToast('Fichier invalide', 'error');
+        return;
+    }
+
     const preview = document.getElementById('imagePreview');
     const loader = document.getElementById('uploadLoader');
     loader.style.display = 'block';
+    loader.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Upload en cours...';
 
     const reader = new FileReader();
     reader.onload = function(ev) {
@@ -495,23 +511,33 @@ async function handleImageUpload(e) {
     };
     reader.readAsDataURL(file);
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', CLOUDINARY_PRESET);
     try {
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: 'POST', body: formData });
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_PRESET);
+
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
+            method: 'POST',
+            body: formData
+        });
+
         const data = await res.json();
         loader.style.display = 'none';
+
         if (data.secure_url) {
             document.getElementById('prodImageUrl').value = data.secure_url;
             preview.innerHTML = `<img src="${data.secure_url}" alt="">`;
             showToast('Image uploadée!', 'success');
         } else {
-            showToast('Erreur upload: ' + (data.error?.message || 'Inconnue'), 'error');
+            const errMsg = data.error?.message || JSON.stringify(data);
+            console.error('[Upload]', errMsg);
+            showToast('Erreur: ' + errMsg, 'error');
+            preview.innerHTML = '';
         }
     } catch (err) {
         loader.style.display = 'none';
-        showToast('Erreur upload', 'error');
+        console.error('[Upload] Network error:', err);
+        showToast('Erreur réseau: ' + err.message, 'error');
     }
 }
 
