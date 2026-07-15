@@ -1407,7 +1407,14 @@ body {
 
     .main-nav.open { display: flex; }
     .mobile-menu { display: flex; }
-    .search-box { display: none; }
+
+    .header-inner { flex-wrap: wrap; }
+    .search-box {
+        order: 10; width: 100%; max-width: none; margin-top: 8px;
+        border-radius: var(--radius-md);
+    }
+    .search-box input { padding: 11px 16px; font-size: 15px; }
+    .search-box button { padding: 11px 20px; border-radius: 0 var(--radius-md) var(--radius-md) 0; }
 
     .hero-inner { flex-direction: column; text-align: center; }
     .hero { padding: 80px 0 40px; }
@@ -1487,8 +1494,8 @@ body {
    iPhone-Specific (Notch/Dynamic Island)
    ============================================ */
 @supports (-webkit-touch-callout: none) {
-    .header-inner { height: 56px; }
-    .hero { padding: 72px 0 32px; }
+    .header-inner { height: auto; min-height: 56px; flex-wrap: wrap; }
+    .hero { padding: 90px 0 32px; }
     .hero-content h1 { font-size: 28px; }
     .hero-content p { font-size: 13px; }
     .hero-stats { gap: 14px; }
