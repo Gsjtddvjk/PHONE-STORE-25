@@ -2,23 +2,26 @@
 
 :root {
     --white: #ffffff;
-    --white-90: rgba(255,255,255,0.9);
-    --white-80: rgba(255,255,255,0.8);
-    --white-70: rgba(255,255,255,0.7);
-    --white-60: rgba(255,255,255,0.6);
-    --white-50: rgba(255,255,255,0.5);
-    --white-40: rgba(255,255,255,0.4);
-    --white-30: rgba(255,255,255,0.3);
-    --white-20: rgba(255,255,255,0.2);
-    --white-10: rgba(255,255,255,0.1);
-    --bg: #f2f4f8;
-    --bg-subtle: #e8ecf1;
+    --white-95: rgba(255,255,255,0.95);
+    --white-90: rgba(255,255,255,0.90);
+    --white-85: rgba(255,255,255,0.85);
+    --white-80: rgba(255,255,255,0.80);
+    --white-75: rgba(255,255,255,0.75);
+    --white-70: rgba(255,255,255,0.70);
+    --white-60: rgba(255,255,255,0.60);
+    --white-50: rgba(255,255,255,0.50);
+    --white-40: rgba(255,255,255,0.40);
+    --white-30: rgba(255,255,255,0.30);
+    --white-20: rgba(255,255,255,0.20);
+    --white-10: rgba(255,255,255,0.10);
+    --bg: #f0f2f5;
+    --bg-warm: #f5f5f7;
+    --bg-cool: #e8ecf1;
     --text: #1c1c1e;
     --text-secondary: #636366;
     --text-muted: #aeaeb2;
     --primary: #007aff;
     --primary-light: #5ac8fa;
-    --primary-dark: #0051d5;
     --primary-rgb: 0, 122, 255;
     --purple: #5856d6;
     --green: #34c759;
@@ -27,33 +30,32 @@
     --red-rgb: 255, 59, 48;
     --orange: #ff9500;
     --pink: #ff2d55;
-    --border: 0.5px solid rgba(0,0,0,0.06);
+    --border-color: rgba(0,0,0,0.06);
+    --border: 0.5px solid var(--border-color);
     --border-light: 0.5px solid rgba(0,0,0,0.04);
-    --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
-    --shadow-lg: 0 8px 28px rgba(0,0,0,0.08), 0 16px 48px rgba(0,0,0,0.04);
-    --shadow-xl: 0 12px 40px rgba(0,0,0,0.1), 0 24px 64px rgba(0,0,0,0.06);
-    --shadow-glow: 0 0 40px rgba(0,122,255,0.15);
+    --border-shine: 0.5px solid rgba(255,255,255,0.5);
+    --shadow-xs: 0 1px 2px rgba(0,0,0,0.03);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.03);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.03);
+    --shadow-lg: 0 8px 28px rgba(0,0,0,0.07), 0 16px 48px rgba(0,0,0,0.03);
+    --shadow-xl: 0 12px 40px rgba(0,0,0,0.08), 0 24px 64px rgba(0,0,0,0.04);
+    --shadow-diamond: 0 8px 32px rgba(0,0,0,0.06), 0 0 0 1px rgba(255,255,255,0.8) inset, 0 1px 0 rgba(255,255,255,0.9) inset;
+    --shadow-glow: 0 0 40px rgba(0,122,255,0.12);
     --radius: 20px;
     --radius-md: 16px;
     --radius-sm: 12px;
     --radius-xs: 8px;
-    --glass: rgba(255,255,255,0.72);
-    --glass-heavy: rgba(255,255,255,0.88);
-    --blur: blur(40px) saturate(180%);
-    --blur-heavy: blur(60px) saturate(200%);
+    --glass-bg: rgba(255,255,255,0.78);
+    --glass-border: 0.5px solid rgba(255,255,255,0.6);
+    --blur: blur(50px) saturate(200%);
+    --blur-heavy: blur(80px) saturate(220%);
     --transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
     --transition-fast: all 0.18s cubic-bezier(0.25, 0.1, 0.25, 1);
     --bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
     --spring: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-html {
-    scroll-behavior: smooth;
-    -webkit-text-size-adjust: 100%;
-    -webkit-tap-highlight-color: transparent;
-}
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Helvetica Neue', sans-serif;
@@ -81,17 +83,19 @@ body {
 .bg-gradient {
     position: absolute; top: -60%; left: -60%; width: 220%; height: 220%;
     background:
-        radial-gradient(ellipse at 15% 25%, rgba(0,122,255,0.06) 0%, transparent 50%),
-        radial-gradient(ellipse at 85% 15%, rgba(88,86,214,0.05) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 80%, rgba(52,199,89,0.04) 0%, transparent 50%),
-        radial-gradient(ellipse at 30% 50%, rgba(255,149,0,0.03) 0%, transparent 40%);
-    animation: bgShift 30s ease-in-out infinite;
+        radial-gradient(ellipse at 10% 20%, rgba(0,122,255,0.07) 0%, transparent 50%),
+        radial-gradient(ellipse at 90% 10%, rgba(88,86,214,0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 90%, rgba(52,199,89,0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 30% 40%, rgba(255,149,0,0.04) 0%, transparent 40%),
+        radial-gradient(ellipse at 70% 60%, rgba(255,45,85,0.03) 0%, transparent 40%);
+    animation: bgShift 35s ease-in-out infinite;
 }
 
 @keyframes bgShift {
     0%, 100% { transform: translate(0, 0) rotate(0deg); }
-    33% { transform: translate(2%, -2%) rotate(0.5deg); }
-    66% { transform: translate(-1%, 1%) rotate(-0.5deg); }
+    25% { transform: translate(1.5%, -1.5%) rotate(0.3deg); }
+    50% { transform: translate(-1%, 1%) rotate(-0.3deg); }
+    75% { transform: translate(0.5%, -0.5%) rotate(0.2deg); }
 }
 
 /* ============================================
@@ -99,7 +103,7 @@ body {
    ============================================ */
 .header {
     position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
-    background: var(--glass-heavy);
+    background: var(--white-90);
     backdrop-filter: var(--blur-heavy);
     -webkit-backdrop-filter: var(--blur-heavy);
     border-bottom: var(--border);
@@ -107,7 +111,7 @@ body {
 }
 
 .header.scrolled {
-    background: rgba(255,255,255,0.92);
+    background: var(--white-95);
     box-shadow: var(--shadow-sm);
 }
 
@@ -137,9 +141,9 @@ body {
 }
 
 .search-box:focus-within {
-    background: rgba(118,118,128,0.1);
-    border-color: rgba(0,122,255,0.2);
-    box-shadow: 0 0 0 3px rgba(0,122,255,0.08);
+    background: var(--white-90);
+    border-color: rgba(0,122,255,0.25);
+    box-shadow: 0 0 0 3px rgba(0,122,255,0.08), var(--shadow-sm);
 }
 
 .search-box input {
@@ -379,15 +383,16 @@ body {
 .btn-primary:active { transform: translateY(0) scale(0.97); }
 
 .btn-outline {
-    background: var(--white-70);
+    background: var(--white-80);
     color: var(--text);
     border: var(--border);
     backdrop-filter: blur(12px);
 }
 
 .btn-outline:hover {
-    background: var(--white-90);
+    background: var(--white-95);
     transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 .btn-sm { padding: 10px 16px; font-size: 13px; }
@@ -483,9 +488,9 @@ body {
 
 .floating-card {
     position: absolute; padding: 8px 16px;
-    background: var(--glass-heavy);
+    background: var(--white-90);
     backdrop-filter: blur(20px) saturate(180%);
-    border: var(--border);
+    border: var(--border-shine);
     border-radius: var(--radius-sm);
     font-size: 12px; font-weight: 600; color: var(--text);
     box-shadow: var(--shadow-md);
@@ -517,15 +522,16 @@ body {
 }
 
 .cat-card {
-    background: var(--glass);
+    background: var(--glass-bg);
     backdrop-filter: var(--blur);
     -webkit-backdrop-filter: var(--blur);
-    border: var(--border);
+    border: var(--glass-border);
     border-radius: var(--radius); padding: 24px 14px;
     text-align: center; cursor: pointer;
     transition: var(--transition);
     text-decoration: none; color: var(--text);
     position: relative; overflow: hidden;
+    box-shadow: var(--shadow-diamond);
 }
 
 .cat-card::before {
@@ -538,7 +544,7 @@ body {
 
 .cat-card:hover {
     transform: translateY(-5px);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-lg);
 }
 
 .cat-icon {
@@ -560,7 +566,7 @@ body {
 }
 
 /* ============================================
-   Products Grid
+   Products Grid - Diamond Cards
    ============================================ */
 .products { padding: 50px 0; position: relative; z-index: 1; }
 
@@ -570,36 +576,37 @@ body {
 }
 
 .product-card {
-    background: var(--glass);
+    background: var(--white-85);
     backdrop-filter: var(--blur);
     -webkit-backdrop-filter: var(--blur);
-    border: var(--border);
+    border: var(--glass-border);
     border-radius: var(--radius); overflow: hidden;
     cursor: pointer; transition: var(--transition); position: relative;
-    opacity: 0; transform: translateY(20px);
+    opacity: 0; transform: translateY(24px) scale(0.97);
+    box-shadow: var(--shadow-diamond);
 }
 
-.product-card.card-visible {
-    opacity: 1; transform: translateY(0);
-    transition: opacity 0.5s ease, transform 0.5s var(--spring);
+.product-card.card-visible, .product-card.card-animate {
+    opacity: 1; transform: translateY(0) scale(1);
+    transition: opacity 0.5s ease, transform 0.5s var(--spring), box-shadow 0.3s ease;
 }
 
 .product-card::before {
     content: ''; position: absolute; inset: 0;
-    background: linear-gradient(135deg, rgba(0,122,255,0.03), transparent);
-    opacity: 0; transition: var(--transition); z-index: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.4), transparent 60%);
+    opacity: 1; transition: var(--transition); z-index: 0;
 }
 
-.product-card:hover::before { opacity: 1; }
+.product-card:hover::before { opacity: 0.5; }
 
 .product-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: var(--shadow-xl), 0 0 0 1px rgba(255,255,255,0.8) inset;
 }
 
 .product-image {
     height: 200px;
-    background: linear-gradient(135deg, #f5f5f7, #e8e8ed);
+    background: linear-gradient(135deg, var(--bg-warm), var(--bg-cool));
     display: flex; align-items: center; justify-content: center;
     position: relative; overflow: hidden; z-index: 1;
 }
@@ -609,7 +616,7 @@ body {
     transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
-.product-card:hover .product-image img { transform: scale(1.05); }
+.product-card:hover .product-image img { transform: scale(1.06); }
 
 .product-emoji {
     font-size: 64px; transition: transform 0.5s var(--bounce);
@@ -640,9 +647,9 @@ body {
 
 .action-btn {
     width: 32px; height: 32px; border-radius: 50%;
-    background: var(--glass-heavy);
+    background: var(--white-90);
     backdrop-filter: blur(12px);
-    border: var(--border);
+    border: var(--border-shine);
     box-shadow: var(--shadow-sm);
     cursor: pointer; display: flex; align-items: center; justify-content: center;
     font-size: 12px; color: var(--text-secondary); transition: var(--transition-fast);
@@ -702,29 +709,30 @@ body {
 }
 
 /* ============================================
-   Phone Cards (Index)
+   Phone Cards
    ============================================ */
 .phones-section { padding: 50px 0; position: relative; z-index: 1; }
 
 .phone-card {
-    background: var(--glass);
+    background: var(--white-85);
     backdrop-filter: var(--blur);
     -webkit-backdrop-filter: var(--blur);
-    border: var(--border);
+    border: var(--glass-border);
     border-radius: var(--radius); overflow: hidden;
     transition: var(--transition);
     cursor: pointer; position: relative;
-    opacity: 0; transform: translateY(20px);
+    opacity: 0; transform: translateY(24px) scale(0.97);
+    box-shadow: var(--shadow-diamond);
 }
 
-.phone-card.card-visible {
-    opacity: 1; transform: translateY(0);
-    transition: opacity 0.5s ease, transform 0.5s var(--spring);
+.phone-card.card-visible, .phone-card.card-animate {
+    opacity: 1; transform: translateY(0) scale(1);
+    transition: opacity 0.5s ease, transform 0.5s var(--spring), box-shadow 0.3s ease;
 }
 
 .phone-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: var(--shadow-xl), 0 0 0 1px rgba(255,255,255,0.8) inset;
 }
 
 .phone-card-badge {
@@ -736,7 +744,7 @@ body {
 
 .phone-card-image {
     height: 180px;
-    background: linear-gradient(135deg, #f5f5f7, #e8e8ed);
+    background: linear-gradient(135deg, var(--bg-warm), var(--bg-cool));
     display: flex; align-items: center; justify-content: center;
     font-size: 72px; position: relative; overflow: hidden;
 }
@@ -853,24 +861,25 @@ body {
 .features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
 
 .feature-card {
-    background: var(--glass);
+    background: var(--white-85);
     backdrop-filter: var(--blur);
     -webkit-backdrop-filter: var(--blur);
-    border: var(--border);
+    border: var(--glass-border);
     border-radius: var(--radius); padding: 28px 18px;
     text-align: center; transition: var(--transition);
     position: relative; overflow: hidden;
-    opacity: 0; transform: translateY(20px);
+    opacity: 0; transform: translateY(24px);
+    box-shadow: var(--shadow-diamond);
 }
 
 .feature-card.card-visible {
     opacity: 1; transform: translateY(0);
-    transition: opacity 0.5s ease, transform 0.5s var(--spring);
+    transition: opacity 0.5s ease, transform 0.5s var(--spring), box-shadow 0.3s ease;
 }
 
 .feature-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
 }
 
 .feature-icon {
@@ -894,7 +903,7 @@ body {
    Footer
    ============================================ */
 .footer {
-    background: var(--glass);
+    background: var(--white-80);
     backdrop-filter: var(--blur);
     -webkit-backdrop-filter: var(--blur);
     border-top: var(--border);
@@ -947,7 +956,7 @@ body {
 .sidebar {
     position: fixed; top: 0; right: -420px;
     width: 380px; max-width: 90vw; height: 100vh;
-    background: var(--white-95, rgba(255,255,255,0.95));
+    background: var(--white-95);
     backdrop-filter: var(--blur-heavy);
     -webkit-backdrop-filter: var(--blur-heavy);
     border-left: var(--border);
@@ -992,7 +1001,7 @@ body {
 
 .cart-item-img {
     width: 56px; height: 56px;
-    background: linear-gradient(135deg, #f5f5f7, #e8e8ed);
+    background: linear-gradient(135deg, var(--bg-warm), var(--bg-cool));
     border-radius: var(--radius-xs); display: flex; align-items: center; justify-content: center;
     font-size: 24px; flex-shrink: 0;
 }
@@ -1040,10 +1049,10 @@ body {
 .modal.open { opacity: 1; visibility: visible; }
 
 .modal-content {
-    background: var(--white-95, rgba(255,255,255,0.95));
+    background: var(--white-95);
     backdrop-filter: var(--blur-heavy);
     -webkit-backdrop-filter: var(--blur-heavy);
-    border: var(--border);
+    border: var(--glass-border);
     border-radius: var(--radius);
     width: 100%; max-width: 660px; max-height: 90vh;
     overflow-y: auto; position: relative;
@@ -1068,7 +1077,7 @@ body {
 
 .modal-image {
     flex: 0 0 260px; height: 320px;
-    background: linear-gradient(135deg, #f5f5f7, #e8e8ed);
+    background: linear-gradient(135deg, var(--bg-warm), var(--bg-cool));
     display: flex; align-items: center; justify-content: center;
     border-radius: var(--radius) 0 0 var(--radius); font-size: 90px;
 }
@@ -1105,7 +1114,7 @@ body {
 
 .toast {
     padding: 12px 18px;
-    background: var(--white-95, rgba(255,255,255,0.95));
+    background: var(--white-95);
     backdrop-filter: var(--blur);
     -webkit-backdrop-filter: var(--blur);
     border: var(--border);
@@ -1162,7 +1171,7 @@ body {
 .empty-state-full p { font-size: 13px; }
 
 /* ============================================
-   Shimmer Effect on Cards
+   Shimmer on Cards
    ============================================ */
 @keyframes shimmer {
     0% { background-position: -200% 0; }
@@ -1171,7 +1180,7 @@ body {
 
 .product-card::after, .phone-card::after {
     content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
     background-size: 200% 100%;
     opacity: 0; transition: opacity 0.4s; pointer-events: none; z-index: 1;
 }
@@ -1181,7 +1190,7 @@ body {
 }
 
 /* ============================================
-   Form Elements (Checkout, Admin)
+   Form Elements
    ============================================ */
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
@@ -1260,7 +1269,7 @@ body {
 
     .main-nav {
         position: fixed; top: 64px; left: 0; right: 0;
-        background: var(--white-95, rgba(255,255,255,0.95));
+        background: var(--white-95);
         backdrop-filter: var(--blur-heavy);
         -webkit-backdrop-filter: var(--blur-heavy);
         border-bottom: var(--border);
@@ -1422,7 +1431,6 @@ body {
 
 ::selection { background: rgba(0,122,255,0.12); color: var(--text); }
 
-/* Safe area for iPhone notch */
 @supports (padding: env(safe-area-inset-bottom)) {
     .fab-container { bottom: calc(14px + env(safe-area-inset-bottom)); }
     .footer { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
