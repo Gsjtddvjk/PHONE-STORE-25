@@ -20,31 +20,35 @@
         .products-toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 24px; }
         .filter-tags { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; }
         .filter-tag {
-            padding: 8px 16px; border-radius: 10px;
+            padding: 8px 18px; border-radius: 50px;
             border: 0.5px solid rgba(255,255,255,0.6);
             background: var(--white-75);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
             cursor: pointer; font-size: 13px; font-weight: 500;
-            transition: var(--transition); white-space: nowrap; color: var(--text-secondary);
+            transition: var(--transition-fast); white-space: nowrap; color: var(--text-secondary);
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
         .filter-tag:hover {
-            background: var(--white-90);
+            background: var(--white-92);
             color: var(--text);
+            transform: translateY(-1px);
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
         .filter-tag.active {
             background: linear-gradient(135deg, var(--primary), var(--purple));
             color: white; border-color: transparent;
-            box-shadow: 0 4px 12px rgba(0,122,255,0.3);
+            box-shadow: 0 2px 10px rgba(0,122,255,0.3);
         }
         .products-count { font-size: 13px; color: var(--text-muted); white-space: nowrap; }
         .sort-select {
             padding: 8px 14px; border: 0.5px solid rgba(255,255,255,0.6);
-            border-radius: var(--radius-xs); font-size: 13px;
-            background: var(--white-75); backdrop-filter: blur(20px);
+            border-radius: var(--radius-sm); font-size: 13px;
+            background: var(--white-85); backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
             color: var(--text); cursor: pointer; outline: none; font-family: inherit;
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            transition: var(--transition-fast);
         }
         .sort-select:focus { border-color: rgba(0,122,255,0.3); box-shadow: 0 0 0 3px rgba(0,122,255,0.08); }
         .sort-select option { background: var(--white); color: var(--text); }
@@ -63,7 +67,14 @@
         <div class="loader-status">Connexion en cours...</div>
     </div>
 
-    <div class="bg-effects"><div class="bg-gradient"></div></div>
+    <div class="bg-effects">
+        <div class="bg-gradient"></div>
+        <div class="bg-orbs">
+            <div class="bg-orb bg-orb-1"></div>
+            <div class="bg-orb bg-orb-2"></div>
+            <div class="bg-orb bg-orb-3"></div>
+        </div>
+    </div>
 
     <header class="header">
         <div class="container header-inner">
@@ -185,37 +196,27 @@
         const CAT_SLUG_TO_ID = { telephone: 1, ecran: 2, batterie: 3, camera: 4, boitier: 5, accessoire: 6, outils: 7 };
         const CAT_ID_TO_LABEL = { 1: 'Téléphones', 2: 'Écrans', 3: 'Batteries', 4: 'Caméras', 5: 'Boîtiers', 6: 'Accessoires', 7: 'Outils' };
 
-        function waitForProducts() {
-            return new Promise((resolve) => {
-                if (products.length > 0) { resolve(); return; }
-                const cached = localStorage.getItem('ipstore25_cache_products');
-                if (cached) {
-                    try {
-                        const data = JSON.parse(cached);
-                        if (data && data.length > 0) {
-                            products = data.map(function(p) {
-                                return {
-                                    id: p.id, name: p.name, category: p.category_id,
-                                    price: parseFloat(p.price),
-                                    oldPrice: p.old_price ? parseFloat(p.old_price) : null,
-                                    emoji: p.emoji || '📱', image: p.image_url,
-                                    image2: p.image_url2 || null, image3: p.image_url3 || null,
-                                    badge: p.badge, desc: p.description || '', stock: p.stock || 'En stock'
-                                };
-                            });
-                            resolve();
-                            return;
-                        }
-                    } catch(e) {}
-                }
-                const check = setInterval(() => {
-                    if (products.length > 0) { clearInterval(check); resolve(); }
-                }, 50);
-                setTimeout(() => { clearInterval(check); resolve(); }, 3000);
-            });
+        function loadFromCache() {
+            try {
+                var cached = localStorage.getItem('ipstore25_cache_products');
+                if (!cached) return false;
+                var data = JSON.parse(cached);
+                if (!data || data.length === 0) return false;
+                products = data.map(function(p) {
+                    return {
+                        id: p.id, name: p.name, category: p.category_id,
+                        price: parseFloat(p.price),
+                        oldPrice: p.old_price ? parseFloat(p.old_price) : null,
+                        emoji: p.emoji || '📱', image: p.image_url,
+                        image2: p.image_url2 || null, image3: p.image_url3 || null,
+                        badge: p.badge, desc: p.description || '', stock: p.stock || 'En stock'
+                    };
+                });
+                return true;
+            } catch(e) { return false; }
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const cat = params.get('cat');
             const q = params.get('search');
@@ -230,17 +231,27 @@
                 document.getElementById('searchInput').value = q;
             }
 
-            await waitForProducts();
-            renderProductsPage(filterAndSort());
-            hidePageLoader();
-
-            setTimeout(() => {
-                if (products.length === 0 && typeof loadProducts === 'function') {
-                    loadProducts().then(() => {
+            if (products.length > 0) {
+                renderProductsPage(filterAndSort());
+                hidePageLoader();
+            } else if (loadFromCache()) {
+                renderProductsPage(filterAndSort());
+                hidePageLoader();
+            } else {
+                hidePageLoader();
+                var tryCount = 0;
+                var fastCheck = setInterval(() => {
+                    tryCount++;
+                    if (products.length > 0) {
+                        clearInterval(fastCheck);
                         renderProductsPage(filterAndSort());
-                    });
-                }
-            }, 100);
+                    } else if (tryCount >= 20) {
+                        clearInterval(fastCheck);
+                        loadFromCache();
+                        renderProductsPage(filterAndSort());
+                    }
+                }, 100);
+            }
         });
 
         function renderProductsPage(list) {

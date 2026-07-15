@@ -4,6 +4,7 @@ let wishlist = JSON.parse(localStorage.getItem('ipstore25_wishlist')) || [];
 let currentModalProduct = null;
 let siteSettings = {};
 let dbConnected = false;
+let _productsLoaded = false;
 
 const categoryLabels = { telephone: 'Téléphones', ecran: 'Écrans', batterie: 'Batteries', camera: 'Caméras', boitier: 'Boîtiers', accessoire: 'Accessoires', outils: 'Outils' };
 const CAT_ID_TO_LABEL = { 1: 'Téléphones', 2: 'Écrans', 3: 'Batteries', 4: 'Caméras', 5: 'Boîtiers', 6: 'Accessoires', 7: 'Outils' };
@@ -39,7 +40,7 @@ async function supabaseQuery(table, options) {
     var eq = options.eq;
     var order = options.order;
     var limit = options.limit;
-    var timeout = options.timeout || 5000;
+    var timeout = options.timeout || 3000;
     var cacheKey = 'ipstore25_cache_' + table;
 
     if (!getClient()) {
@@ -72,26 +73,21 @@ async function supabaseQuery(table, options) {
 }
 
 // ============================================
-// Load all data in parallel (fast)
+// Load all data (fast - only await products)
 // ============================================
 async function loadAllData() {
     setDbStatus('loading');
 
-    var results = await Promise.allSettled([
-        loadProducts(),
-        loadCategories(),
-        loadSettings()
-    ]);
+    await loadProducts();
 
     if (dbConnected) {
         setDbStatus('connected');
-        hidePageLoader();
     } else {
         setDbStatus('disconnected');
-        var ls = document.querySelector('.loader-status');
-        if (ls) ls.textContent = 'Hors ligne — données en cache';
-        setTimeout(hidePageLoader, 800);
     }
+    hidePageLoader();
+
+    Promise.all([loadCategories(), loadSettings()]);
 }
 
 // ============================================
@@ -102,7 +98,7 @@ async function loadProducts() {
         select: '*',
         eq: { is_active: true },
         order: { column: 'sort_order', ascending: true },
-        timeout: 5000
+        timeout: 3000
     });
 
     if (data) {
@@ -123,9 +119,11 @@ async function loadProducts() {
             };
         });
         dbConnected = true;
+        localStorage.setItem('ipstore25_products', JSON.stringify(products));
     } else {
         products = JSON.parse(localStorage.getItem('ipstore25_products')) || [];
     }
+    _productsLoaded = true;
 }
 
 // ============================================
@@ -214,7 +212,7 @@ function renderPhones() {
         fragment.appendChild(createPhoneCard(p));
     });
     grid.appendChild(fragment);
-    observeCards();
+    requestAnimationFrame(function() { observeCards(); });
 }
 
 function createPhoneCard(p) {
@@ -261,7 +259,7 @@ function renderProducts(list) {
     var fragment = document.createDocumentFragment();
     list.forEach(function(p) { fragment.appendChild(createProductCard(p)); });
     grid.appendChild(fragment);
-    observeCards();
+    requestAnimationFrame(function() { observeCards(); });
 }
 
 function createProductCard(p) {
@@ -313,18 +311,20 @@ function leaveProductImg(e) {
 // ============================================
 // Intersection Observer for scroll animations
 // ============================================
+var _cardObserver = null;
 function observeCards() {
-    var observer = new IntersectionObserver(function(entries) {
+    if (_cardObserver) _cardObserver.disconnect();
+    _cardObserver = new IntersectionObserver(function(entries) {
         for (var i = 0; i < entries.length; i++) {
             if (entries[i].isIntersecting) {
                 entries[i].target.classList.add('card-visible');
-                observer.unobserve(entries[i].target);
+                _cardObserver.unobserve(entries[i].target);
             }
         }
-    }, { threshold: 0.05, rootMargin: '50px' });
+    }, { threshold: 0.02, rootMargin: '80px' });
 
     document.querySelectorAll('.phone-card:not(.card-visible), .product-card:not(.card-visible), .cat-card:not(.card-visible), .feature-card:not(.card-visible)').forEach(function(el) {
-        observer.observe(el);
+        _cardObserver.observe(el);
     });
 }
 
@@ -584,28 +584,61 @@ function closeAll() {
 }
 
 // ============================================
+// Scroll header
+// ============================================
+var _lastScroll = 0;
+var _scrollTicking = false;
+function onScroll() {
+    _lastScroll = window.scrollY;
+    if (!_scrollTicking) {
+        requestAnimationFrame(function() {
+            var header = document.querySelector('.header');
+            if (header) {
+                if (_lastScroll > 50) header.classList.add('scrolled');
+                else header.classList.remove('scrolled');
+            }
+            _scrollTicking = false;
+        });
+        _scrollTicking = true;
+    }
+}
+
+// ============================================
 // Initialize
 // ============================================
 document.addEventListener('DOMContentLoaded', async function() {
     setDbStatus('loading');
 
+    // Load from cache first for instant render
+    var cached = localStorage.getItem('ipstore25_products');
+    if (cached) {
+        try {
+            products = JSON.parse(cached);
+            renderProducts(products);
+            renderPhones();
+            updateCartCount();
+            updateWishlistCount();
+        } catch(e) {}
+    }
+
+    hidePageLoader();
+    observeCards();
+
+    // Now fetch fresh data
     await loadAllData();
 
-    renderProducts(products);
-    renderPhones();
-    updateCartCount();
-    updateWishlistCount();
+    // Re-render with fresh data
+    if (_productsLoaded) {
+        renderProducts(products);
+        renderPhones();
+        updateCartCount();
+        updateWishlistCount();
+    }
 
     setupRealtime();
     observeCards();
 
-    window.addEventListener('scroll', function() {
-        var header = document.querySelector('.header');
-        if (header) {
-            if (window.scrollY > 50) header.classList.add('scrolled');
-            else header.classList.remove('scrolled');
-        }
-    });
+    window.addEventListener('scroll', onScroll, { passive: true });
 });
 
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeAll(); });
