@@ -174,15 +174,26 @@
         let currentSort = 'default';
         let searchQuery = '';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // script.js already loaded products, just apply filters
+        function waitForProducts() {
+            return new Promise((resolve) => {
+                if (products.length > 0) { resolve(); return; }
+                const check = setInterval(() => {
+                    if (products.length > 0) { clearInterval(check); resolve(); }
+                }, 100);
+                setTimeout(() => { clearInterval(check); resolve(); }, 5000);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await waitForProducts();
+
             const params = new URLSearchParams(window.location.search);
             const cat = params.get('cat');
             const q = params.get('search');
             if (cat) {
                 currentCategory = cat;
                 document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
-                const tag = document.querySelector(`.filter-tag[data-cat="${cat}"]`);
+                const tag = document.querySelector('.filter-tag[data-cat="' + cat + '"]');
                 if (tag) tag.classList.add('active');
             }
             if (q) {
@@ -190,6 +201,7 @@
                 document.getElementById('searchInput').value = q;
             }
             renderProductsPage(filterAndSort());
+            hidePageLoader();
         });
 
         function renderProductsPage(list) {
@@ -206,28 +218,31 @@
 
             list.forEach(p => {
                 const inW = wishlist.includes(p.id);
+                const images = [p.image, p.image2, p.image3].filter(Boolean);
                 const card = document.createElement('div');
                 card.className = 'product-card';
-                card.innerHTML = `
-                    ${p.badge ? `<span class="product-badge badge-${p.badge}">${p.badge === 'hot' ? '🔥 Best Seller' : p.badge === 'new' ? '✨ Nouveau' : '💰 Promo'}</span>` : ''}
-                    <div class="product-actions">
-                        <button class="action-btn ${inW ? 'wishlisted' : ''}" onclick="event.stopPropagation();toggleWishlist(${p.id});renderProductsPage(filterAndSort())"><i class="fas fa-heart"></i></button>
-                        <button class="action-btn" onclick="event.stopPropagation();window.location.href='product.html?id=${p.id}'"><i class="fas fa-eye"></i></button>
-                    </div>
-                    <div class="product-image" onclick="window.location.href='product.html?id=${p.id}'">
-                        <span class="product-emoji">${p.emoji}</span>
-                    </div>
-                    <div class="product-info">
-                        <div class="product-cat">${categoryLabels[p.category] || p.category}</div>
-                        <div class="product-name">${p.name}</div>
-                        <div class="product-bottom">
-                            <div>
-                                <div class="product-price">${p.price.toLocaleString('fr-DZ')} DA</div>
-                                ${p.oldPrice ? `<div class="product-price-old">${p.oldPrice.toLocaleString('fr-DZ')} DA</div>` : ''}
-                            </div>
-                            <button class="add-cart-btn" onclick="event.stopPropagation();addToCart(${p.id})"><i class="fas fa-cart-plus"></i></button>
-                        </div>
-                    </div>`;
+                card.innerHTML =
+                    (p.badge ? '<span class="product-badge badge-' + p.badge + '">' + (p.badge === 'hot' ? '🔥 Best Seller' : p.badge === 'new' ? '✨ Nouveau' : '💰 Promo') + '</span>' : '') +
+                    '<div class="product-actions">' +
+                        '<button class="action-btn ' + (inW ? 'wishlisted' : '') + '" onclick="event.stopPropagation();toggleWishlist(' + p.id + ');renderProductsPage(filterAndSort())"><i class="fas fa-heart"></i></button>' +
+                        '<button class="action-btn" onclick="event.stopPropagation();window.location.href=\'product.html?id=' + p.id + '\'"><i class="fas fa-eye"></i></button>' +
+                    '</div>' +
+                    '<div class="product-image" onclick="window.location.href=\'product.html?id=' + p.id + '\'">' +
+                        (images.length > 0
+                            ? '<img src="' + images[0] + '" alt="' + p.name + '" loading="lazy" data-images=\'' + JSON.stringify(images).replace(/'/g, "&#39;") + '\' onmouseenter="hoverProductImg(event)" onmouseleave="leaveProductImg(event)">'
+                            : '<span class="product-emoji">' + p.emoji + '</span>') +
+                    '</div>' +
+                    '<div class="product-info">' +
+                        '<div class="product-cat">' + (categoryLabels[p.category] || p.category) + '</div>' +
+                        '<div class="product-name">' + p.name + '</div>' +
+                        '<div class="product-bottom">' +
+                            '<div>' +
+                                '<div class="product-price">' + p.price.toLocaleString('fr-DZ') + ' DA</div>' +
+                                (p.oldPrice ? '<div class="product-price-old">' + p.oldPrice.toLocaleString('fr-DZ') + ' DA</div>' : '') +
+                            '</div>' +
+                            '<button class="add-cart-btn" onclick="event.stopPropagation();addToCart(' + p.id + ')"><i class="fas fa-cart-plus"></i></button>' +
+                        '</div>' +
+                    '</div>';
                 grid.appendChild(card);
             });
 
@@ -237,7 +252,8 @@
         function filterProducts(cat) {
             currentCategory = cat;
             document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
-            document.querySelector(`.filter-tag[data-cat="${cat}"]`).classList.add('active');
+            var tag = document.querySelector('.filter-tag[data-cat="' + cat + '"]');
+            if (tag) tag.classList.add('active');
             renderProductsPage(filterAndSort());
         }
 
@@ -247,16 +263,18 @@
         }
 
         function filterAndSort() {
-            let list = currentCategory === 'all' ? [...products] : products.filter(p => p.category === currentCategory);
+            var list = currentCategory === 'all' ? products.slice() : products.filter(function(p) { return p.category === currentCategory; });
             if (searchQuery) {
-                list = list.filter(p => p.name.toLowerCase().includes(searchQuery) || p.desc.toLowerCase().includes(searchQuery));
+                list = list.filter(function(p) {
+                    return p.name.toLowerCase().indexOf(searchQuery) !== -1 || p.desc.toLowerCase().indexOf(searchQuery) !== -1;
+                });
             }
             switch (currentSort) {
-                case 'price-asc': list.sort((a, b) => a.price - b.price); break;
-                case 'price-desc': list.sort((a, b) => b.price - a.price); break;
-                case 'name-asc': list.sort((a, b) => a.name.localeCompare(b.name)); break;
-                case 'name-desc': list.sort((a, b) => b.name.localeCompare(a.name)); break;
-                case 'newest': list.sort((a, b) => (b.id || 0) - (a.id || 0)); break;
+                case 'price-asc': list.sort(function(a, b) { return a.price - b.price; }); break;
+                case 'price-desc': list.sort(function(a, b) { return b.price - a.price; }); break;
+                case 'name-asc': list.sort(function(a, b) { return a.name.localeCompare(b.name); }); break;
+                case 'name-desc': list.sort(function(a, b) { return b.name.localeCompare(a.name); }); break;
+                case 'newest': list.sort(function(a, b) { return (b.id || 0) - (a.id || 0); }); break;
             }
             return list;
         }
@@ -266,7 +284,7 @@
             renderProductsPage(filterAndSort());
         }
 
-        document.getElementById('searchInput').addEventListener('keydown', e => {
+        document.getElementById('searchInput').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') searchProducts();
         });
     </script>

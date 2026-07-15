@@ -81,6 +81,8 @@ async function fetchProducts() {
             oldPrice: p.old_price ? parseFloat(p.old_price) : null,
             emoji: p.emoji || '📱',
             image: p.image_url,
+            image2: p.image_url2 || null,
+            image3: p.image_url3 || null,
             badge: p.badge,
             desc: p.description || '',
             stock: p.stock || 'En stock'
@@ -150,6 +152,8 @@ async function saveProductToDB(product) {
             old_price: product.oldPrice,
             emoji: product.emoji,
             image_url: product.image,
+            image_url2: product.image2 || null,
+            image_url3: product.image3 || null,
             badge: product.badge,
             description: product.desc,
             stock: product.stock
@@ -310,7 +314,7 @@ async function changePassword() {
 
 async function initAdmin() {
     await fetchAdminPass();
-    await Promise.all([fetchProducts(), fetchOrders(), loadSettingsIntoForm()]);
+            await Promise.all([fetchProducts(), fetchOrders(), loadSettingsIntoForm(), loadCustomerOrders()]);
     renderDashboard();
     renderProductsTable();
     renderOrdersTable();
@@ -326,6 +330,7 @@ function showSection(name) {
     if (name === 'products') renderProductsTable();
     if (name === 'orders') renderOrdersTable();
     if (name === 'settings') loadSettingsIntoForm();
+    if (name === 'customer-orders') loadCustomerOrders();
 }
 
 function getCatLabel(c) {
@@ -462,10 +467,18 @@ function openProductModal(id = null) {
         document.getElementById('prodBadge').value = p.badge || '';
         document.getElementById('prodDesc').value = p.desc;
         document.getElementById('prodImageUrl').value = p.image || '';
+        if (document.getElementById('prodImageUrl2')) document.getElementById('prodImageUrl2').value = p.image2 || '';
+        if (document.getElementById('prodImageUrl3')) document.getElementById('prodImageUrl3').value = p.image3 || '';
         if (p.image) {
-            document.getElementById('imagePreview').innerHTML = `<img src="${p.image}" alt="">`;
+            document.getElementById('imagePreview').innerHTML = '<img src="' + p.image + '" alt="">';
         } else {
             document.getElementById('imagePreview').innerHTML = '';
+        }
+        if (document.getElementById('imagePreview2') && p.image2) {
+            document.getElementById('imagePreview2').innerHTML = '<img src="' + p.image2 + '" alt="">';
+        }
+        if (document.getElementById('imagePreview3') && p.image3) {
+            document.getElementById('imagePreview3').innerHTML = '<img src="' + p.image3 + '" alt="">';
         }
     } else {
         document.getElementById('productModalTitle').textContent = 'Ajouter un Produit';
@@ -479,6 +492,10 @@ function openProductModal(id = null) {
         document.getElementById('prodDesc').value = '';
         document.getElementById('prodImageUrl').value = '';
         document.getElementById('imagePreview').innerHTML = '';
+        if (document.getElementById('prodImageUrl2')) document.getElementById('prodImageUrl2').value = '';
+        if (document.getElementById('prodImageUrl3')) document.getElementById('prodImageUrl3').value = '';
+        if (document.getElementById('imagePreview2')) document.getElementById('imagePreview2').innerHTML = '';
+        if (document.getElementById('imagePreview3')) document.getElementById('imagePreview3').innerHTML = '';
     }
     m.classList.add('open');
 }
@@ -550,6 +567,70 @@ async function handleImageUpload(e) {
     }
 }
 
+async function handleImageUpload2(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { showToast('Image max 5MB', 'error'); return; }
+    const preview = document.getElementById('imagePreview2');
+    const loader = document.getElementById('uploadLoader2');
+    loader.style.display = 'block';
+    const reader = new FileReader();
+    reader.onload = function(ev) { preview.innerHTML = `<img src="${ev.target.result}" alt="">`; };
+    reader.readAsDataURL(file);
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_PRESET);
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: 'POST', body: formData });
+        const data = await res.json();
+        loader.style.display = 'none';
+        if (data.secure_url) {
+            document.getElementById('prodImageUrl2').value = data.secure_url;
+            preview.innerHTML = `<img src="${data.secure_url}" alt="">`;
+            showToast('Image 2 uploadée!', 'success');
+        } else { showToast('Erreur upload', 'error'); preview.innerHTML = ''; }
+    } catch (err) { loader.style.display = 'none'; showToast('Erreur réseau', 'error'); }
+}
+
+async function handleImageUpload3(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { showToast('Image max 5MB', 'error'); return; }
+    const preview = document.getElementById('imagePreview3');
+    const loader = document.getElementById('uploadLoader3');
+    loader.style.display = 'block';
+    const reader = new FileReader();
+    reader.onload = function(ev) { preview.innerHTML = `<img src="${ev.target.result}" alt="">`; };
+    reader.readAsDataURL(file);
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_PRESET);
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: 'POST', body: formData });
+        const data = await res.json();
+        loader.style.display = 'none';
+        if (data.secure_url) {
+            document.getElementById('prodImageUrl3').value = data.secure_url;
+            preview.innerHTML = `<img src="${data.secure_url}" alt="">`;
+            showToast('Image 3 uploadée!', 'success');
+        } else { showToast('Erreur upload', 'error'); preview.innerHTML = ''; }
+    } catch (err) { loader.style.display = 'none'; showToast('Erreur réseau', 'error'); }
+}
+
+function previewImageUrl2() {
+    const url = document.getElementById('prodImageUrl2').value.trim();
+    const preview = document.getElementById('imagePreview2');
+    if (url) preview.innerHTML = `<img src="${url}" alt="" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-image\\' style=\\'font-size:32px;color:var(--text-muted)\\'></i>'">`;
+    else preview.innerHTML = '';
+}
+
+function previewImageUrl3() {
+    const url = document.getElementById('prodImageUrl3').value.trim();
+    const preview = document.getElementById('imagePreview3');
+    if (url) preview.innerHTML = `<img src="${url}" alt="" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-image\\' style=\\'font-size:32px;color:var(--text-muted)\\'></i>'">`;
+    else preview.innerHTML = '';
+}
+
 async function saveProduct() {
     const id = document.getElementById('editProductId').value;
     const name = document.getElementById('prodName').value.trim();
@@ -560,10 +641,12 @@ async function saveProduct() {
     const badge = document.getElementById('prodBadge').value || null;
     const desc = document.getElementById('prodDesc').value.trim();
     const image = document.getElementById('prodImageUrl').value.trim() || null;
+    const image2 = document.getElementById('prodImageUrl2') ? document.getElementById('prodImageUrl2').value.trim() || null : null;
+    const image3 = document.getElementById('prodImageUrl3') ? document.getElementById('prodImageUrl3').value.trim() || null : null;
 
     if (!name || !price) { showToast('Remplissez les champs obligatoires', 'error'); return; }
 
-    const product = { name, category, price, oldPrice, emoji, badge, desc, image, stock: "En stock" };
+    const product = { name, category, price, oldPrice, emoji, badge, desc, image, image2, image3, stock: "En stock" };
 
     if (id) {
         const existing = adminProducts.find(x => x.id === parseInt(id));
@@ -723,4 +806,59 @@ function showToast(msg, type = 'success') {
     t.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
     c.appendChild(t);
     setTimeout(() => t.remove(), 3000);
+}
+
+let customerOrders = [];
+
+async function loadCustomerOrders() {
+    if (!_db.admin) return;
+    try {
+        const { data, error } = await _db.admin
+            .from('customer_orders')
+            .select('*')
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+        customerOrders = data || [];
+        renderCustomerOrders();
+    } catch (err) {
+        console.error('Error loading customer orders:', err);
+    }
+}
+
+function renderCustomerOrders() {
+    const tbody = document.getElementById('customerOrdersBody');
+    if (!tbody) return;
+    if (customerOrders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px">Aucune commande client</td></tr>';
+        return;
+    }
+    tbody.innerHTML = customerOrders.map(o => `<tr>
+        <td>${o.id}</td>
+        <td>${o.customer_name || '-'}</td>
+        <td>${o.customer_phone || '-'}</td>
+        <td>${o.customer_email || '-'}</td>
+        <td>${o.customer_city || '-'}</td>
+        <td><strong>${parseFloat(o.total || 0).toLocaleString('fr-DZ')} DA</strong></td>
+        <td><span class="order-status status-${o.status || 'pending'}">${{pending:'En attente',confirmed:'Confirmée',shipped:'Expédiée',delivered:'Livrée'}[o.status || 'pending']}</span></td>
+        <td>${o.created_at ? new Date(o.created_at).toLocaleDateString('fr-DZ') : '-'}</td>
+        <td><button class="action-btn" onclick="changeCustomerOrderStatus(${o.id})"><i class="fas fa-sync"></i></button></td>
+    </tr>`).join('');
+}
+
+async function changeCustomerOrderStatus(id) {
+    const statuses = ['pending', 'confirmed', 'shipped', 'delivered'];
+    const o = customerOrders.find(x => x.id === id);
+    if (!o) return;
+    const current = statuses.indexOf(o.status || 'pending');
+    const next = statuses[(current + 1) % statuses.length];
+    if (!_db.admin) return;
+    try {
+        const { error } = await _db.admin.from('customer_orders').update({ status: next }).eq('id', id);
+        if (error) throw error;
+        o.status = next;
+        renderCustomerOrders();
+        showToast('Statut mis à jour', 'success');
+    } catch (err) {
+        showToast('Erreur', 'error');
+    }
 }
