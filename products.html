@@ -56,11 +56,67 @@
         }
         .sort-select:focus { border-color: rgba(0,122,255,0.3); box-shadow: 0 0 0 3px rgba(0,122,255,0.08); }
         .sort-select option { background: var(--white); color: var(--text); }
+
+        .search-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9999; display: flex; align-items: flex-start; justify-content: center;
+            padding-top: 100px; opacity: 0; visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .search-overlay.open { opacity: 1; visibility: visible; }
+        .search-overlay-box {
+            background: var(--white-95);
+            backdrop-filter: var(--blur-heavy);
+            -webkit-backdrop-filter: var(--blur-heavy);
+            border: var(--glass-border-heavy);
+            border-radius: var(--radius); padding: 24px;
+            width: 90%; max-width: 500px;
+            box-shadow: var(--shadow-xxl);
+            transform: translateY(-20px) scale(0.95);
+            transition: transform 0.3s var(--bounce);
+            position: relative;
+        }
+        .search-overlay.open .search-overlay-box { transform: translateY(0) scale(1); }
+        .search-close {
+            position: absolute; top: 12px; right: 12px;
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(118,118,128,0.08); border: none;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            color: var(--text-secondary); transition: var(--transition-fast);
+        }
+        .search-close:hover { background: rgba(118,118,128,0.15); color: var(--text); }
+        .search-overlay-icon { font-size: 36px; text-align: center; margin-bottom: 16px; }
+        .search-overlay-box input {
+            width: 100%; padding: 14px 18px; font-size: 16px;
+            background: rgba(118,118,128,0.06);
+            border: var(--border); border-radius: var(--radius-sm);
+            outline: none; color: var(--text); font-family: inherit;
+            transition: var(--transition-fast);
+        }
+        .search-overlay-box input:focus {
+            border-color: rgba(0,122,255,0.3);
+            box-shadow: 0 0 0 3px rgba(0,122,255,0.08);
+        }
+        .search-overlay-btn {
+            width: 100%; margin-top: 12px; padding: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            color: white; border: none; border-radius: var(--radius-sm);
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: var(--transition-fast);
+        }
+        .search-overlay-btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
+
         @media (max-width: 768px) {
             .products-header h1 { font-size: 26px; }
             .products-toolbar { flex-direction: column; align-items: stretch; }
             .filter-tags { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 6px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
             .filter-tags::-webkit-scrollbar { display: none; }
+            .search-overlay { padding-top: 60px; }
+            .search-overlay-box { padding: 20px; width: 95%; }
         }
     </style>
 </head>
@@ -87,10 +143,6 @@
                 <span class="logo-icon">📱</span>
                 <span class="logo-text">iPhone<span class="logo-highlight">Store</span><span class="logo-num">25</span></span>
             </a>
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Rechercher un produit iPhone..." onkeydown="if(event.key==='Enter')searchProducts()">
-                <button onclick="searchProducts()"><i class="fas fa-search"></i></button>
-            </div>
             <nav class="main-nav" id="mainNav">
                 <a href="index.html" class="nav-link">Accueil</a>
                 <a href="products.html" class="nav-link active">Produits</a>
@@ -101,6 +153,7 @@
                     <span class="db-status-dot"></span>
                     <span id="dbStatusText">Connexion...</span>
                 </div>
+                <button class="header-btn" onclick="toggleSearch()" title="Rechercher"><i class="fas fa-search"></i></button>
                 <a href="admin.html" class="header-btn" title="Admin"><i class="fas fa-cog"></i></a>
                 <button class="header-btn cart-btn" onclick="openCart()">
                     <i class="fas fa-shopping-cart"></i>
@@ -211,6 +264,15 @@
 
     <div class="overlay" id="overlay" onclick="closeAll()"></div>
     <div class="toast-container" id="toastContainer"></div>
+
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-overlay-box">
+            <button class="search-close" onclick="toggleSearch()"><i class="fas fa-times"></i></button>
+            <div class="search-overlay-icon">🔍</div>
+            <input type="text" id="searchInput" placeholder="Rechercher un produit iPhone..." autofocus onkeydown="if(event.key==='Enter')searchProducts()">
+            <button class="search-overlay-btn" onclick="searchProducts()"><i class="fas fa-search"></i> Rechercher</button>
+        </div>
+    </div>
 
     <div class="fab-container">
         <a href="https://wa.me/213775765743" target="_blank" class="fab fab-whatsapp" title="WhatsApp" data-setting-whatsapp><i class="fab fa-whatsapp"></i></a>
@@ -384,9 +446,18 @@
             return list;
         }
 
+        function toggleSearch() {
+            var overlay = document.getElementById('searchOverlay');
+            overlay.classList.toggle('open');
+            if (overlay.classList.contains('open')) {
+                setTimeout(function() { document.getElementById('searchInput').focus(); }, 100);
+            }
+        }
+
         function searchProducts() {
             searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
             renderProductsPage(filterAndSort());
+            toggleSearch();
         }
     </script>
 </body>
