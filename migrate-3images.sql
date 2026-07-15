@@ -25,6 +25,12 @@ CREATE TABLE IF NOT EXISTS customer_orders (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Enable real-time for customer_orders
-ALTER PUBLICATION supabase_realtime ADD TABLE IF NOT EXISTS customer_orders;
-ALTER PUBLICATION supabase_realtime ADD TABLE IF NOT EXISTS products;
+-- Enable real-time for customer_orders (ignore error if already added)
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE customer_orders;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE products;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
