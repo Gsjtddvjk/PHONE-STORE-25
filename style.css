@@ -170,7 +170,7 @@ body {
 
 .header-inner {
     display: flex; align-items: center; justify-content: space-between;
-    height: 64px; gap: 20px;
+    height: 64px; gap: 12px;
 }
 
 .logo {
@@ -1408,13 +1408,15 @@ body {
     .main-nav.open { display: flex; }
     .mobile-menu { display: flex; }
 
-    .header-inner { flex-wrap: wrap; }
+    .header-inner { flex-wrap: wrap; gap: 8px; height: auto; min-height: 56px; }
+    .header-actions { gap: 4px; }
+    .header-btn { width: 34px; height: 34px; font-size: 13px; }
     .search-box {
-        order: 10; width: 100%; max-width: none; margin-top: 8px;
-        border-radius: var(--radius-md);
+        order: 10; width: 100%; max-width: none;
+        border-radius: var(--radius-sm);
     }
-    .search-box input { padding: 11px 16px; font-size: 15px; }
-    .search-box button { padding: 11px 20px; border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+    .search-box input { padding: 9px 12px; font-size: 14px; }
+    .search-box button { padding: 9px 14px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 12px; }
 
     .hero-inner { flex-direction: column; text-align: center; }
     .hero { padding: 80px 0 40px; }
