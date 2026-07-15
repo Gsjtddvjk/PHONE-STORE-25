@@ -15,45 +15,55 @@
     <style>
         .detail-page { padding: 100px 0 60px; position: relative; z-index: 1; }
         .breadcrumb { display: flex; gap: 8px; align-items: center; margin-bottom: 24px; font-size: 13px; color: var(--text-muted); }
-        .breadcrumb a { color: #007aff; text-decoration: none; transition: var(--transition); }
+        .breadcrumb a { color: var(--primary); text-decoration: none; transition: var(--transition); }
         .breadcrumb a:hover { text-decoration: underline; }
         .detail-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
-            background: rgba(255,255,255,0.7);
-            backdrop-filter: blur(20px) saturate(180%);
+            background: var(--white-88);
+            backdrop-filter: var(--blur-heavy);
+            -webkit-backdrop-filter: var(--blur-heavy);
             border-radius: var(--radius); padding: 32px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
-            border: 0.5px solid rgba(0,0,0,0.06);
+            box-shadow: var(--shadow-diamond);
+            border: var(--glass-border-heavy);
+            position: relative; overflow: hidden;
+        }
+        .detail-grid::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.4), transparent 60%);
+            pointer-events: none;
         }
         .detail-image {
-            background: linear-gradient(135deg, #f5f5f7, #e8e8ed);
+            background: linear-gradient(135deg, var(--bg-warm), var(--bg-cool));
             border-radius: var(--radius-sm); display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 380px; font-size: 140px; position: relative;
+            min-height: 380px; font-size: 140px; position: relative; overflow: hidden;
         }
         .thumb-row { display: flex; gap: 10px; margin-top: 14px; justify-content: center; }
-        .thumb-row img.thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; opacity: 0.6; }
-        .thumb-row img.thumb:hover, .thumb-row img.thumb.active { border-color: #007aff; opacity: 1; }
-        .detail-cat { font-size: 12px; color: #007aff; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; }
-        .detail-name { font-size: 28px; font-weight: 800; margin: 8px 0 14px; line-height: 1.2; letter-spacing: -0.5px; }
-        .detail-price {
-            font-size: 30px; font-weight: 800;
-            color: var(--text);
-            margin-bottom: 6px;
+        .thumb-row img.thumb {
+            width: 60px; height: 60px; object-fit: cover; border-radius: 10px;
+            cursor: pointer; border: 2px solid transparent; transition: var(--transition-fast);
+            opacity: 0.6; background: var(--white-80);
         }
+        .thumb-row img.thumb:hover, .thumb-row img.thumb.active {
+            border-color: var(--primary); opacity: 1;
+            box-shadow: 0 2px 8px rgba(0,122,255,0.2);
+        }
+        .detail-cat { font-size: 12px; color: var(--primary); text-transform: uppercase; font-weight: 600; letter-spacing: 1px; }
+        .detail-name { font-size: 28px; font-weight: 800; margin: 8px 0 14px; line-height: 1.2; letter-spacing: -0.5px; }
+        .detail-price { font-size: 30px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
         .detail-old-price { font-size: 16px; color: var(--text-muted); text-decoration: line-through; margin-bottom: 12px; }
-        .detail-stock { font-size: 14px; color: #34c759; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-        .detail-desc { font-size: 15px; color: var(--text-secondary); line-height: 1.8; margin-bottom: 26px; padding-bottom: 26px; border-bottom: 0.5px solid rgba(0,0,0,0.06); }
+        .detail-stock { font-size: 14px; color: var(--green); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .detail-desc { font-size: 15px; color: var(--text-secondary); line-height: 1.8; margin-bottom: 26px; padding-bottom: 26px; border-bottom: var(--border); }
         .detail-qty { display: flex; align-items: center; gap: 18px; margin-bottom: 26px; }
         .detail-qty label { font-size: 15px; font-weight: 600; }
         .qty-control {
-            display: flex; border: 0.5px solid rgba(0,0,0,0.08); border-radius: var(--radius-xs); overflow: hidden;
+            display: flex; border: var(--border); border-radius: var(--radius-xs); overflow: hidden;
             background: rgba(118,118,128,0.04);
         }
         .qty-control button {
             width: 44px; height: 44px; background: transparent; border: none;
-            cursor: pointer; font-size: 16px; transition: var(--transition); color: var(--text-secondary);
+            cursor: pointer; font-size: 16px; transition: var(--transition-fast); color: var(--text-secondary);
         }
-        .qty-control button:hover { background: rgba(0,122,255,0.08); color: #007aff; }
+        .qty-control button:hover { background: rgba(0,122,255,0.08); color: var(--primary); }
         .qty-control span { width: 56px; text-align: center; font-size: 16px; font-weight: 700; line-height: 44px; color: var(--text); }
         .detail-actions { display: flex; gap: 12px; }
         .detail-actions .btn { flex: 1; justify-content: center; padding: 16px; border-radius: 14px; }
@@ -73,6 +83,15 @@
         <div class="loader-text">iPhone<span>Store</span>25</div>
         <div class="loader-bar"><div class="loader-bar-inner"></div></div>
         <div class="loader-status">Connexion en cours...</div>
+    </div>
+
+    <div class="bg-effects">
+        <div class="bg-gradient"></div>
+        <div class="bg-orbs">
+            <div class="bg-orb bg-orb-1"></div>
+            <div class="bg-orb bg-orb-2"></div>
+            <div class="bg-orb bg-orb-3"></div>
+        </div>
     </div>
 
     <header class="header">
@@ -170,8 +189,23 @@
         document.addEventListener('DOMContentLoaded', async () => {
             setDbStatus('loading');
             const id = parseInt(new URLSearchParams(window.location.search).get('id'));
-            if (id) await loadProduct(id);
-            hidePageLoader();
+            if (id) {
+                // Try cache first for instant render
+                const all = JSON.parse(localStorage.getItem('ipstore25_products')) || [];
+                const cached = all.find(p => p.id === id);
+                if (cached) {
+                    currentProduct = cached;
+                    renderProduct();
+                    loadRelated();
+                    hidePageLoader();
+                    setDbStatus('connected');
+                }
+                // Then fetch fresh from DB
+                await loadProduct(id);
+                if (!cached) hidePageLoader();
+            } else {
+                hidePageLoader();
+            }
         });
 
         async function loadProduct(id) {
@@ -180,7 +214,7 @@
             if (client) {
                 try {
                     const controller = new AbortController();
-                    const timer = setTimeout(() => controller.abort(), 10000);
+                    const timer = setTimeout(() => controller.abort(), 3000);
                     const { data, error } = await client
                         .from('products')
                         .select('*')
@@ -257,9 +291,16 @@
         async function loadRelated() {
             if (!currentProduct) return;
             let related = [];
+            // Try cache first
+            const all = JSON.parse(localStorage.getItem('ipstore25_products')) || [];
+            related = all.filter(p => p.category === currentProduct.category && p.id !== currentProduct.id).slice(0, 4);
+            renderRelated(related);
+            // Then try fresh from DB
             const client = _db.client;
             if (client) {
                 try {
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), 3000);
                     const { data } = await client
                         .from('products')
                         .select('*')
@@ -267,20 +308,21 @@
                         .eq('is_active', true)
                         .neq('id', currentProduct.id)
                         .limit(4);
-                    if (data) {
+                    clearTimeout(timer);
+                    if (data && data.length > 0) {
                         related = data.map(p => ({
                             id: p.id, name: p.name, category: p.category_id,
                             price: parseFloat(p.price), emoji: p.emoji || '📱', image: p.image_url
                         }));
+                        renderRelated(related);
                     }
                 } catch {}
             }
-            if (related.length === 0) {
-                const all = JSON.parse(localStorage.getItem('ipstore25_products')) || [];
-                related = all.filter(p => p.category === currentProduct.category && p.id !== currentProduct.id).slice(0, 4);
-            }
+        }
+
+        function renderRelated(related) {
             document.getElementById('relatedProducts').innerHTML = related.map(p => `
-                <div class="product-card" onclick="window.location.href='product.html?id=${p.id}'">
+                <div class="product-card card-visible" onclick="window.location.href='product.html?id=${p.id}'">
                     <div class="product-image">${p.image ? `<img src="${p.image}" alt="" style="width:100%;height:100%;object-fit:cover">` : `<span class="product-emoji">${p.emoji}</span>`}</div>
                     <div class="product-info">
                         <div class="product-cat">${catLabels[p.category]||p.category}</div>

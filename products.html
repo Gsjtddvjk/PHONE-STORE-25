@@ -198,11 +198,21 @@
 
         function loadFromCache() {
             try {
+                // Try mapped products first (from script.js)
+                var mapped = localStorage.getItem('ipstore25_products');
+                if (mapped) {
+                    var data = JSON.parse(mapped);
+                    if (data && data.length > 0) {
+                        products = data;
+                        return true;
+                    }
+                }
+                // Try raw cache (from supabaseQuery)
                 var cached = localStorage.getItem('ipstore25_cache_products');
                 if (!cached) return false;
-                var data = JSON.parse(cached);
-                if (!data || data.length === 0) return false;
-                products = data.map(function(p) {
+                var data2 = JSON.parse(cached);
+                if (!data2 || data2.length === 0) return false;
+                products = data2.map(function(p) {
                     return {
                         id: p.id, name: p.name, category: p.category_id,
                         price: parseFloat(p.price),
@@ -245,12 +255,12 @@
                     if (products.length > 0) {
                         clearInterval(fastCheck);
                         renderProductsPage(filterAndSort());
-                    } else if (tryCount >= 20) {
+                    } else if (tryCount >= 10) {
                         clearInterval(fastCheck);
                         loadFromCache();
                         renderProductsPage(filterAndSort());
                     }
-                }, 100);
+                }, 80);
             }
         });
 
