@@ -99,7 +99,7 @@
             <a href="index.html" class="logo"><span class="logo-icon">📱</span><span class="logo-text">iPhone<span class="logo-highlight">Store</span><span class="logo-num">25</span></span></a>
             <nav class="main-nav" id="mainNav">
                 <a href="index.html" class="nav-link">Accueil</a>
-                <a href="products.html" class="nav-link">Produits</a>
+                <a href="products.html" class="nav-link active">Produits</a>
                 <a href="admin.html" class="nav-link">Admin</a>
             </nav>
             <div class="header-actions">
@@ -110,6 +110,7 @@
                 <a href="admin.html" class="header-btn" title="Admin"><i class="fas fa-cog"></i></a>
                 <button class="header-btn cart-btn" onclick="openCart()"><i class="fas fa-shopping-cart"></i><span class="badge" id="cartCount">0</span></button>
                 <button class="header-btn" onclick="openWishlist()"><i class="fas fa-heart"></i><span class="badge" id="wishlistCount">0</span></button>
+                <button class="header-btn mobile-menu" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
             </div>
         </div>
     </header>
@@ -133,14 +134,14 @@
                     <div class="detail-qty">
                         <label>Quantité:</label>
                         <div class="qty-control">
-                            <button onclick="changeDetailQty(-1)">-</button>
+                            <button onclick="changeDetailQty(-1)"><i class="fas fa-minus"></i></button>
                             <span id="detailQty">1</span>
-                            <button onclick="changeDetailQty(1)">+</button>
+                            <button onclick="changeDetailQty(1)"><i class="fas fa-plus"></i></button>
                         </div>
                     </div>
                     <div class="detail-actions">
                         <button class="btn btn-primary" onclick="addToCartDetail()"><i class="fas fa-cart-plus"></i> Ajouter au Panier</button>
-                        <button class="btn btn-outline" id="detailWishlistBtn" onclick="toggleWishlistDetail()"><i class="fas fa-heart"></i></button>
+                        <button class="btn btn-outline" id="detailWishlistBtn" onclick="toggleWishlistDetail()"><i class="fas fa-heart"></i> Favoris</button>
                     </div>
                 </div>
             </div>

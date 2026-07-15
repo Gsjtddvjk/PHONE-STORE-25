@@ -495,12 +495,12 @@ function openCheckoutModal() {
             '<div style="padding:32px">' +
                 '<h2 style="font-size:22px;font-weight:800;margin-bottom:6px">📦 Finaliser la commande</h2>' +
                 '<p style="color:var(--text-secondary);font-size:14px;margin-bottom:24px">' + cart.length + ' article(s) — <strong>' + total.toLocaleString('fr-DZ') + ' DA</strong></p>' +
-                '<div class="form-group"><label>Nom complet *</label><input type="text" id="coName" placeholder="Votre nom"></div>' +
-                '<div class="form-group"><label>Téléphone *</label><input type="tel" id="coPhone" placeholder="07XX XX XX XX"></div>' +
-                '<div class="form-group"><label>Email</label><input type="email" id="coEmail" placeholder="email@example.com"></div>' +
-                '<div class="form-group"><label>Adresse de livraison *</label><input type="text" id="coAddress" placeholder="Adresse complète"></div>' +
-                '<div class="form-group"><label>Ville</label><input type="text" id="coCity" placeholder="Alger, Oran..."></div>' +
-                '<div class="form-group"><label>Notes</label><textarea id="coNotes" rows="2" placeholder="Instructions spéciales..."></textarea></div>' +
+                '<div class="form-group"><label><i class="fas fa-user"></i> Nom complet *</label><input type="text" id="coName" placeholder="Votre nom"></div>' +
+                '<div class="form-group"><label><i class="fas fa-phone"></i> Téléphone *</label><input type="tel" id="coPhone" placeholder="07XX XX XX XX"></div>' +
+                '<div class="form-group"><label><i class="fas fa-envelope"></i> Email</label><input type="email" id="coEmail" placeholder="email@example.com"></div>' +
+                '<div class="form-group"><label><i class="fas fa-map-marker-alt"></i> Adresse de livraison *</label><input type="text" id="coAddress" placeholder="Adresse complète"></div>' +
+                '<div class="form-group"><label><i class="fas fa-city"></i> Ville</label><input type="text" id="coCity" placeholder="Alger, Oran..."></div>' +
+                '<div class="form-group"><label><i class="fas fa-sticky-note"></i> Notes</label><textarea id="coNotes" rows="2" placeholder="Instructions spéciales..."></textarea></div>' +
                 '<button class="btn btn-primary btn-full" onclick="submitOrder()" style="margin-top:8px"><i class="fas fa-check"></i> Confirmer la commande</button>' +
             '</div>' +
         '</div>';

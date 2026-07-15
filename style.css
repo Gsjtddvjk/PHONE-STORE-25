@@ -472,6 +472,20 @@ body {
 }
 .btn-danger:hover { box-shadow: 0 6px 20px rgba(255,59,48,0.4); transform: translateY(-2px); }
 
+.btn-secondary {
+    background: var(--white-88);
+    color: var(--text);
+    border: var(--border);
+    backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-xs);
+}
+
+.btn-secondary:hover {
+    background: var(--white-95);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
 .btn-success {
     background: linear-gradient(135deg, var(--green), #30d158);
     color: white; box-shadow: 0 4px 14px rgba(52,199,89,0.3);
