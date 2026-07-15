@@ -1428,33 +1428,33 @@ body {
     .hero-visual { flex: none; }
 
     .categories-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .products-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .products-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .features-grid { grid-template-columns: 1fr; }
     .footer-grid { grid-template-columns: 1fr; gap: 24px; }
 
-    .section-title { font-size: 24px; margin-bottom: 20px; }
-    .categories { padding: 36px 0; }
-    .products { padding: 36px 0; }
-    .phones-section { padding: 36px 0; }
+    .section-title { font-size: 22px; margin-bottom: 16px; }
+    .categories { padding: 24px 0; }
+    .products { padding: 24px 0; }
+    .phones-section { padding: 24px 0; }
     .features { padding: 40px 0; }
     .footer { padding: 36px 0 0; }
 
     .modal-body { flex-direction: column; }
     .modal-image { flex: none; height: 180px; border-radius: var(--radius) var(--radius) 0 0; }
 
-    .product-image { height: 140px; }
-    .product-emoji { font-size: 52px; }
-    .product-info { padding: 10px; }
-    .product-name { font-size: 12px; }
-    .product-price { font-size: 14px; }
-    .product-cat { font-size: 9px; }
-    .add-cart-btn { width: 32px; height: 32px; font-size: 11px; }
+    .product-image { height: 120px; }
+    .product-emoji { font-size: 44px; }
+    .product-info { padding: 8px; }
+    .product-name { font-size: 11px; line-height: 1.3; }
+    .product-price { font-size: 13px; }
+    .product-cat { font-size: 8px; }
+    .add-cart-btn { width: 28px; height: 28px; font-size: 10px; }
 
-    .phone-card-image { height: 140px; font-size: 56px; }
-    .phone-card-name { font-size: 13px; }
-    .phone-card-price { font-size: 16px; }
-    .phone-card-desc { font-size: 11px; margin-bottom: 8px; }
-    .phone-card-footer .btn { padding: 7px; font-size: 11px; }
+    .phone-card-image { height: 120px; font-size: 48px; }
+    .phone-card-name { font-size: 12px; }
+    .phone-card-price { font-size: 14px; }
+    .phone-card-desc { font-size: 10px; margin-bottom: 6px; }
+    .phone-card-footer .btn { padding: 6px; font-size: 10px; }
 
     .promo-banner { padding: 20px 14px; border-radius: var(--radius-sm); margin-bottom: 36px; }
     .promo-text h2 { font-size: 18px; }

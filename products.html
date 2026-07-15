@@ -16,20 +16,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        .products-page { padding: 100px 0 60px; position: relative; z-index: 1; }
-        .products-header { margin-bottom: 32px; }
-        .products-header h1 { font-size: 34px; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px; }
-        .products-header p { color: var(--text-secondary); font-size: 15px; }
-        .products-toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 24px; }
-        .filter-tags { display: flex; gap: 8px; flex: 1; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 4px; }
+        .products-page { padding: 80px 0 40px; position: relative; z-index: 1; }
+        .products-header { margin-bottom: 20px; }
+        .products-header h1 { font-size: 28px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px; }
+        .products-header p { color: var(--text-secondary); font-size: 13px; margin-bottom: 0; }
+        .products-toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; }
+        .filter-tags { display: flex; gap: 6px; flex: 1; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 2px; }
         .filter-tags::-webkit-scrollbar { display: none; }
         .filter-tag {
-            padding: 8px 18px; border-radius: 50px;
+            padding: 7px 14px; border-radius: 50px;
             border: 0.5px solid rgba(255,255,255,0.6);
             background: var(--white-75);
             backdrop-filter: blur(30px) saturate(180%);
             -webkit-backdrop-filter: blur(30px) saturate(180%);
-            cursor: pointer; font-size: 13px; font-weight: 500;
+            cursor: pointer; font-size: 12px; font-weight: 500;
             transition: var(--transition-fast); white-space: nowrap; color: var(--text-secondary);
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
@@ -44,10 +44,10 @@
             color: white; border-color: transparent;
             box-shadow: 0 2px 10px rgba(0,122,255,0.3);
         }
-        .products-count { font-size: 13px; color: var(--text-muted); white-space: nowrap; }
+        .products-count { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
         .sort-select {
-            padding: 8px 14px; border: 0.5px solid rgba(255,255,255,0.6);
-            border-radius: var(--radius-sm); font-size: 13px;
+            padding: 7px 12px; border: 0.5px solid rgba(255,255,255,0.6);
+            border-radius: var(--radius-sm); font-size: 12px;
             background: var(--white-85); backdrop-filter: blur(30px) saturate(180%);
             -webkit-backdrop-filter: blur(30px) saturate(180%);
             color: var(--text); cursor: pointer; outline: none; font-family: inherit;
@@ -88,9 +88,9 @@
             color: var(--text-secondary); transition: var(--transition-fast);
         }
         .search-close:hover { background: rgba(118,118,128,0.15); color: var(--text); }
-        .search-overlay-icon { font-size: 36px; text-align: center; margin-bottom: 16px; }
+        .search-overlay-icon { font-size: 32px; text-align: center; margin-bottom: 14px; }
         .search-overlay-box input {
-            width: 100%; padding: 14px 18px; font-size: 16px;
+            width: 100%; padding: 12px 16px; font-size: 15px;
             background: rgba(118,118,128,0.06);
             border: var(--border); border-radius: var(--radius-sm);
             outline: none; color: var(--text); font-family: inherit;
@@ -101,22 +101,34 @@
             box-shadow: 0 0 0 3px rgba(0,122,255,0.08);
         }
         .search-overlay-btn {
-            width: 100%; margin-top: 12px; padding: 12px;
+            width: 100%; margin-top: 10px; padding: 11px;
             background: linear-gradient(135deg, var(--primary), var(--purple));
             color: white; border: none; border-radius: var(--radius-sm);
-            font-size: 14px; font-weight: 600; cursor: pointer;
+            font-size: 13px; font-weight: 600; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 8px;
             transition: var(--transition-fast);
         }
         .search-overlay-btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
 
-        @media (max-width: 768px) {
-            .products-header h1 { font-size: 26px; }
-            .products-toolbar { flex-direction: column; align-items: stretch; }
-            .filter-tags { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 6px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-            .filter-tags::-webkit-scrollbar { display: none; }
-            .search-overlay { padding-top: 60px; }
-            .search-overlay-box { padding: 20px; width: 95%; }
+        @media (min-width: 769px) {
+            .products-page { padding: 100px 0 60px; }
+            .products-header { margin-bottom: 32px; }
+            .products-header h1 { font-size: 34px; margin-bottom: 8px; }
+            .products-header p { font-size: 15px; }
+            .products-toolbar { gap: 12px; margin-bottom: 24px; }
+            .filter-tags { gap: 8px; }
+            .filter-tag { padding: 8px 18px; font-size: 13px; }
+            .products-count { font-size: 13px; }
+            .sort-select { padding: 8px 14px; font-size: 13px; }
+        }
+        @media (max-width: 480px) {
+            .products-page { padding: 70px 12px 30px; }
+            .products-header h1 { font-size: 22px; }
+            .products-header p { font-size: 12px; }
+            .filter-tag { padding: 6px 10px; font-size: 11px; }
+            .sort-select { padding: 6px 10px; font-size: 11px; }
+            .search-overlay { padding-top: 50px; }
+            .search-overlay-box { padding: 18px; width: 95%; }
         }
     </style>
 </head>
