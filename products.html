@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Tous nos Produits - iPhone Store 25</title>
+    <meta name="description" content="Découvrez toute notre collection de pièces détachées iPhone originales - iPhone Store 25">
     <meta name="theme-color" content="#f2f4f8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,7 +58,8 @@
         @media (max-width: 768px) {
             .products-header h1 { font-size: 26px; }
             .products-toolbar { flex-direction: column; align-items: stretch; }
-            .filter-tags { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
+            .filter-tags { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 6px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+            .filter-tags::-webkit-scrollbar { display: none; }
         }
     </style>
 </head>
@@ -64,7 +68,7 @@
         <div class="loader-logo">📱</div>
         <div class="loader-text">iPhone<span>Store</span>25</div>
         <div class="loader-bar"><div class="loader-bar-inner"></div></div>
-        <div class="loader-status">Connexion en cours...</div>
+        <div class="loader-status">Chargement des produits...</div>
     </div>
 
     <div class="bg-effects">
@@ -83,7 +87,7 @@
                 <span class="logo-text">iPhone<span class="logo-highlight">Store</span><span class="logo-num">25</span></span>
             </a>
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Rechercher un produit iPhone...">
+                <input type="text" id="searchInput" placeholder="Rechercher un produit iPhone..." onkeydown="if(event.key==='Enter')searchProducts()">
                 <button onclick="searchProducts()"><i class="fas fa-search"></i></button>
             </div>
             <nav class="main-nav" id="mainNav">
@@ -145,6 +149,35 @@
 
     <footer class="footer">
         <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-logo">📱 iPhone<span>Store</span>25</div>
+                    <p>Votre destination premium pour les pièces iPhone de qualité en Algérie.</p>
+                    <div class="social-links">
+                        <a href="https://facebook.com/iphonestore25" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/iphone_stor_25?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="https://tiktok.com/@iphonestore25" target="_blank"><i class="fab fa-tiktok"></i></a>
+                        <a href="https://wa.me/213775765743" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Liens Utiles</h4>
+                    <a href="#">Politique de Confidentialité</a>
+                    <a href="#">Termes et Conditions</a>
+                    <a href="#">À Propos de Nous</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <p><i class="fas fa-phone"></i> <span data-setting-phone>+213 775 765 743</span></p>
+                    <p><i class="fas fa-envelope"></i> <span data-setting-email>contact@iphonestore25.dz</span></p>
+                </div>
+                <div class="footer-col">
+                    <h4>Mon Compte</h4>
+                    <a href="#">Se Connecter</a>
+                    <a href="#">S'inscrire</a>
+                    <a href="#">Mes Commandes</a>
+                </div>
+            </div>
             <div class="footer-bottom">
                 <p>Copyright © 2026 iPhone Store 25. Tous droits réservés.</p>
             </div>
@@ -179,7 +212,7 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <div class="fab-container">
-        <a href="https://wa.me/213775765743" target="_blank" class="fab fab-whatsapp" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://wa.me/213775765743" target="_blank" class="fab fab-whatsapp" title="WhatsApp" data-setting-whatsapp><i class="fab fa-whatsapp"></i></a>
         <a href="https://www.instagram.com/iphone_stor_25?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" class="fab fab-instagram" title="Instagram"><i class="fab fa-instagram"></i></a>
         <button class="fab fab-top" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
     </div>
@@ -188,26 +221,20 @@
     <script src="supabase-config.js" defer></script>
     <script src="script.js" defer></script>
     <script>
-        let currentCategory = 'all';
-        let currentSort = 'default';
-        let searchQuery = '';
+        var currentCategory = 'all';
+        var currentSort = 'default';
+        var searchQuery = '';
 
-        const CAT_ID_TO_SLUG = { 1: 'telephone', 2: 'ecran', 3: 'batterie', 4: 'camera', 5: 'boitier', 6: 'accessoire', 7: 'outils' };
-        const CAT_SLUG_TO_ID = { telephone: 1, ecran: 2, batterie: 3, camera: 4, boitier: 5, accessoire: 6, outils: 7 };
-        const CAT_ID_TO_LABEL = { 1: 'Téléphones', 2: 'Écrans', 3: 'Batteries', 4: 'Caméras', 5: 'Boîtiers', 6: 'Accessoires', 7: 'Outils' };
+        var CAT_ID_TO_SLUG = { 1: 'telephone', 2: 'ecran', 3: 'batterie', 4: 'camera', 5: 'boitier', 6: 'accessoire', 7: 'outils' };
+        var CAT_SLUG_TO_ID = { telephone: 1, ecran: 2, batterie: 3, camera: 4, boitier: 5, accessoire: 6, outils: 7 };
 
         function loadFromCache() {
             try {
-                // Try mapped products first (from script.js)
                 var mapped = localStorage.getItem('ipstore25_products');
                 if (mapped) {
                     var data = JSON.parse(mapped);
-                    if (data && data.length > 0) {
-                        products = data;
-                        return true;
-                    }
+                    if (data && data.length > 0) { products = data; return true; }
                 }
-                // Try raw cache (from supabaseQuery)
                 var cached = localStorage.getItem('ipstore25_cache_products');
                 if (!cached) return false;
                 var data2 = JSON.parse(cached);
@@ -226,14 +253,15 @@
             } catch(e) { return false; }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            const cat = params.get('cat');
-            const q = params.get('search');
+        document.addEventListener('DOMContentLoaded', function() {
+            var params = new URLSearchParams(window.location.search);
+            var cat = params.get('cat');
+            var q = params.get('search');
+
             if (cat) {
                 currentCategory = cat;
-                document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
-                const tag = document.querySelector('.filter-tag[data-cat="' + cat + '"]');
+                document.querySelectorAll('.filter-tag').forEach(function(t) { t.classList.remove('active'); });
+                var tag = document.querySelector('.filter-tag[data-cat="' + cat + '"]');
                 if (tag) tag.classList.add('active');
             }
             if (q) {
@@ -241,6 +269,7 @@
                 document.getElementById('searchInput').value = q;
             }
 
+            // Cache-first: render instantly
             if (products.length > 0) {
                 renderProductsPage(filterAndSort());
                 hidePageLoader();
@@ -250,7 +279,7 @@
             } else {
                 hidePageLoader();
                 var tryCount = 0;
-                var fastCheck = setInterval(() => {
+                var fastCheck = setInterval(function() {
                     tryCount++;
                     if (products.length > 0) {
                         clearInterval(fastCheck);
@@ -265,8 +294,8 @@
         });
 
         function renderProductsPage(list) {
-            const grid = document.getElementById('productsGrid');
-            const count = document.getElementById('productsCount');
+            var grid = document.getElementById('productsGrid');
+            var count = document.getElementById('productsCount');
             if (!grid) return;
 
             grid.innerHTML = '';
@@ -276,11 +305,11 @@
                 return;
             }
 
-            const fragment = document.createDocumentFragment();
-            list.forEach(p => {
-                const inW = wishlist.includes(p.id);
-                const images = [p.image, p.image2, p.image3].filter(Boolean);
-                const card = document.createElement('div');
+            var fragment = document.createDocumentFragment();
+            list.forEach(function(p) {
+                var inW = wishlist.includes(p.id);
+                var images = [p.image, p.image2, p.image3].filter(Boolean);
+                var card = document.createElement('div');
                 card.className = 'product-card';
                 card.innerHTML =
                     (p.badge ? '<span class="product-badge badge-' + p.badge + '">' + (p.badge === 'hot' ? '🔥 Best Seller' : p.badge === 'new' ? '✨ Nouveau' : '💰 Promo') + '</span>' : '') +
@@ -308,8 +337,8 @@
             });
             grid.appendChild(fragment);
 
-            requestAnimationFrame(() => {
-                grid.querySelectorAll('.product-card').forEach((card, i) => {
+            requestAnimationFrame(function() {
+                grid.querySelectorAll('.product-card').forEach(function(card, i) {
                     card.style.animationDelay = (i * 0.04) + 's';
                     card.classList.add('card-animate');
                 });
@@ -320,7 +349,7 @@
 
         function filterProducts(cat) {
             currentCategory = cat;
-            document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.filter-tag').forEach(function(t) { t.classList.remove('active'); });
             var tag = document.querySelector('.filter-tag[data-cat="' + cat + '"]');
             if (tag) tag.classList.add('active');
             renderProductsPage(filterAndSort());
@@ -358,10 +387,6 @@
             searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
             renderProductsPage(filterAndSort());
         }
-
-        document.getElementById('searchInput').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') searchProducts();
-        });
     </script>
 </body>
 </html>
