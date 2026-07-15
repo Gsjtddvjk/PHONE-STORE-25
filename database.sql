@@ -165,8 +165,8 @@ INSERT INTO categories (name, slug, icon, sort_order) VALUES
 INSERT INTO settings (key, value) VALUES
 ('store_name', 'iPhone Store 25'),
 ('store_email', 'contact@iphonestore25.dz'),
-('store_phone', '+213 770 579 244'),
-('store_phone2', '+213 770 579 211'),
+('store_phone', '+213 775 765 743'),
+('store_phone2', '+213 775 765 743'),
 ('currency', 'DA'),
 ('shipping_cost', '500'),
 ('free_shipping_min', '5000'),

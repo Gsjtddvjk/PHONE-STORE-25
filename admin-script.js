@@ -134,12 +134,18 @@ async function fetchOrders() {
     }
 }
 
+const CATEGORY_MAP = {
+    telephone: 1, ecran: 2, batterie: 3, camera: 4,
+    boitier: 5, accessoire: 6, outils: 7
+};
+
 async function saveProductToDB(product) {
     if (!_db.admin) return true;
     try {
+        const categoryId = CATEGORY_MAP[product.category] || 1;
         const dbProduct = {
             name: product.name,
-            category_id: product.category,
+            category_id: categoryId,
             price: product.price,
             old_price: product.oldPrice,
             emoji: product.emoji,
@@ -153,18 +159,21 @@ async function saveProductToDB(product) {
         const timer = setTimeout(() => controller.abort(), 10000);
 
         if (product.dbId) {
-            const { error } = await _db.admin
+            const { data, error } = await _db.admin
                 .from('products')
                 .update(dbProduct)
-                .eq('id', product.dbId);
+                .eq('id', product.dbId)
+                .select();
             clearTimeout(timer);
             if (error) throw error;
         } else {
-            const { error } = await _db.admin
+            const { data, error } = await _db.admin
                 .from('products')
-                .insert([dbProduct]);
+                .insert([dbProduct])
+                .select();
             clearTimeout(timer);
             if (error) throw error;
+            if (data && data[0]) product.dbId = data[0].id;
         }
         return true;
     } catch (err) {
