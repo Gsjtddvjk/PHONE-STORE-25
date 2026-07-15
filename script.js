@@ -3,28 +3,20 @@ let cart = JSON.parse(localStorage.getItem('ipstore25_cart')) || [];
 let wishlist = JSON.parse(localStorage.getItem('ipstore25_wishlist')) || [];
 let currentModalProduct = null;
 let siteSettings = {};
+let dbConnected = false;
 
-const categoryLabels = {
-    telephone: 'Téléphones',
-    ecran: 'Écrans',
-    batterie: 'Batteries',
-    camera: 'Caméras',
-    boitier: 'Boîtiers',
-    accessoire: 'Accessoires',
-    outils: 'Outils'
-};
-
+const categoryLabels = { telephone: 'Téléphones', ecran: 'Écrans', batterie: 'Batteries', camera: 'Caméras', boitier: 'Boîtiers', accessoire: 'Accessoires', outils: 'Outils' };
 const CAT_ID_TO_LABEL = { 1: 'Téléphones', 2: 'Écrans', 3: 'Batteries', 4: 'Caméras', 5: 'Boîtiers', 6: 'Accessoires', 7: 'Outils' };
 
 const getClient = () => _db.client;
 const getAdmin = () => _db.admin;
 
 // ============================================
-// DB Status Badge
+// DB Status
 // ============================================
 function setDbStatus(status) {
-    const el = document.getElementById('dbStatus');
-    const txt = document.getElementById('dbStatusText');
+    var el = document.getElementById('dbStatus');
+    var txt = document.getElementById('dbStatusText');
     if (!el || !txt) return;
     el.className = 'db-status ' + status;
     txt.textContent = { connected: 'En ligne', disconnected: 'Hors ligne', loading: 'Connexion...' }[status] || status;
@@ -34,29 +26,34 @@ function setDbStatus(status) {
 // Page Loader
 // ============================================
 function hidePageLoader() {
-    const loader = document.getElementById('pageLoader');
+    var loader = document.getElementById('pageLoader');
     if (loader) loader.classList.add('hidden');
 }
 
 // ============================================
-// Supabase query with timeout + cache fallback
+// Supabase query with short timeout + cache
 // ============================================
-async function supabaseQuery(table, options = {}) {
-    const { select = '*', eq, order, limit, timeout = 10000 } = options;
-    const cacheKey = 'ipstore25_cache_' + table;
+async function supabaseQuery(table, options) {
+    options = options || {};
+    var select = options.select || '*';
+    var eq = options.eq;
+    var order = options.order;
+    var limit = options.limit;
+    var timeout = options.timeout || 5000;
+    var cacheKey = 'ipstore25_cache_' + table;
 
     if (!getClient()) {
-        const cached = localStorage.getItem(cacheKey);
+        var cached = localStorage.getItem(cacheKey);
         if (cached) return JSON.parse(cached);
         return null;
     }
 
-    const controller = new AbortController();
-    const timer = setTimeout(function() { controller.abort(); }, timeout);
+    var controller = new AbortController();
+    var timer = setTimeout(function() { controller.abort(); }, timeout);
 
     try {
         var query = getClient().from(table).select(select);
-        if (eq) Object.entries(eq).forEach(function(entry) { query = query.eq(entry[0], entry[1]); });
+        if (eq) { var entries = Object.entries(eq); for (var i = 0; i < entries.length; i++) { query = query.eq(entries[i][0], entries[i][1]); } }
         if (order) query = query.order(order.column, { ascending: order.ascending !== false });
         if (limit) query = query.limit(limit);
 
@@ -68,24 +65,44 @@ async function supabaseQuery(table, options = {}) {
         return result.data;
     } catch (err) {
         clearTimeout(timer);
-        console.error('Query error (' + table + '):', err.message || err);
         var cached = localStorage.getItem(cacheKey);
         if (cached) return JSON.parse(cached);
         return null;
     }
 }
 
-var dbConnected = false;
+// ============================================
+// Load all data in parallel (fast)
+// ============================================
+async function loadAllData() {
+    setDbStatus('loading');
+
+    var results = await Promise.allSettled([
+        loadProducts(),
+        loadCategories(),
+        loadSettings()
+    ]);
+
+    if (dbConnected) {
+        setDbStatus('connected');
+        hidePageLoader();
+    } else {
+        setDbStatus('disconnected');
+        var ls = document.querySelector('.loader-status');
+        if (ls) ls.textContent = 'Hors ligne — données en cache';
+        setTimeout(hidePageLoader, 800);
+    }
+}
 
 // ============================================
-// Load products from Supabase
+// Load products
 // ============================================
 async function loadProducts() {
     var data = await supabaseQuery('products', {
         select: '*',
         eq: { is_active: true },
         order: { column: 'sort_order', ascending: true },
-        timeout: 10000
+        timeout: 5000
     });
 
     if (data) {
@@ -106,35 +123,29 @@ async function loadProducts() {
             };
         });
         dbConnected = true;
-        setDbStatus('connected');
     } else {
         products = JSON.parse(localStorage.getItem('ipstore25_products')) || [];
-        dbConnected = false;
-        setDbStatus('disconnected');
     }
 }
 
 // ============================================
-// Load categories from Supabase
+// Load categories
 // ============================================
 async function loadCategories() {
     var data = await supabaseQuery('categories', {
         select: '*',
         eq: { is_active: true },
         order: { column: 'sort_order', ascending: true },
-        timeout: 10000
+        timeout: 5000
     });
     if (data) data.forEach(function(c) { categoryLabels[c.slug] = c.name; });
 }
 
 // ============================================
-// Load settings from Supabase
+// Load settings
 // ============================================
 async function loadSettings() {
-    var data = await supabaseQuery('settings', {
-        select: '*',
-        timeout: 10000
-    });
+    var data = await supabaseQuery('settings', { select: '*', timeout: 5000 });
     if (data) {
         data.forEach(function(s) { siteSettings[s.key] = s.value; });
         applySettings();
@@ -145,147 +156,112 @@ function applySettings() {
     if (siteSettings.store_phone) {
         var phone = siteSettings.store_phone;
         var phoneClean = phone.replace(/[^0-9]/g, '');
-
-        document.querySelectorAll('[data-setting-phone]').forEach(function(el) {
-            el.textContent = phone;
-        });
-
-        document.querySelectorAll('[data-setting-whatsapp]').forEach(function(el) {
-            el.href = 'https://wa.me/' + phoneClean;
-        });
-
-        document.querySelectorAll('a[href*="wa.me"]').forEach(function(el) {
-            el.href = 'https://wa.me/' + phoneClean;
-        });
+        document.querySelectorAll('[data-setting-phone]').forEach(function(el) { el.textContent = phone; });
+        document.querySelectorAll('[data-setting-whatsapp]').forEach(function(el) { el.href = 'https://wa.me/' + phoneClean; });
+        document.querySelectorAll('a[href*="wa.me"]').forEach(function(el) { el.href = 'https://wa.me/' + phoneClean; });
     }
-
     if (siteSettings.store_email) {
-        document.querySelectorAll('[data-setting-email]').forEach(function(el) {
-            el.textContent = siteSettings.store_email;
-        });
+        document.querySelectorAll('[data-setting-email]').forEach(function(el) { el.textContent = siteSettings.store_email; });
     }
-
     if (siteSettings.store_name) {
-        document.querySelectorAll('[data-setting-name]').forEach(function(el) {
-            el.textContent = siteSettings.store_name;
-        });
+        document.querySelectorAll('[data-setting-name]').forEach(function(el) { el.textContent = siteSettings.store_name; });
     }
 }
 
 // ============================================
-// REAL-TIME: Subscribe to changes
+// REAL-TIME
 // ============================================
 function setupRealtime() {
     var client = getClient();
     if (!client) return;
 
-    client
-        .channel('products-changes')
+    client.channel('products-changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async function() {
             await loadProducts();
             var grid = document.getElementById('productsGrid');
-            if (grid) {
-                if (typeof renderProductsPage === 'function') {
-                    renderProductsPage(filterAndSort());
-                } else {
-                    renderProducts(products);
-                }
-            }
+            if (grid && typeof renderProductsPage === 'function') renderProductsPage(filterAndSort());
+            else if (grid) renderProducts(products);
             var phonesGrid = document.getElementById('phonesGrid');
             if (phonesGrid) renderPhones();
-        })
-        .subscribe();
+        }).subscribe();
 
-    client
-        .channel('settings-changes')
+    client.channel('settings-changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, async function() {
             await loadSettings();
-        })
-        .subscribe();
+        }).subscribe();
 
-    client
-        .channel('categories-changes')
+    client.channel('categories-changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, async function() {
             await loadCategories();
-        })
-        .subscribe();
-
-    client
-        .channel('customer-orders-changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'customer_orders' }, async function() {
-            console.log('[Realtime] New order received');
-        })
-        .subscribe();
+        }).subscribe();
 }
 
 // ============================================
-// Render phones (index page) - latest 6 only
+// Render phones (index) - latest 6
 // ============================================
 function renderPhones() {
     var phones = products.filter(function(p) { return p.category == 1; });
     var grid = document.getElementById('phonesGrid');
     if (!grid) return;
-
     grid.innerHTML = '';
     if (phones.length === 0) {
-        grid.innerHTML = '<div class="empty-state-full"><i class="fas fa-mobile-alt"></i><h3>Aucun téléphone pour le moment</h3><p>Ajoutez des téléphones depuis l\'espace administrateur</p></div>';
+        grid.innerHTML = '<div class="empty-state-full"><i class="fas fa-mobile-alt"></i><h3>Aucun téléphone</h3><p>Ajoutez des téléphones depuis l\'admin</p></div>';
         return;
     }
-
     var latest = phones.slice(-6).reverse();
-
+    var fragment = document.createDocumentFragment();
     latest.forEach(function(p) {
-        var inW = wishlist.includes(p.id);
-        var images = [p.image, p.image2, p.image3].filter(Boolean);
-        var card = document.createElement('div');
-        card.className = 'phone-card';
-        card.innerHTML =
-            (p.badge ? '<span class="phone-card-badge badge-' + p.badge + '">' + (p.badge === 'hot' ? '🔥 Best Seller' : p.badge === 'new' ? '✨ Nouveau' : '💰 Promo') + '</span>' : '') +
-            '<div class="phone-card-image" onclick="window.location.href=\'product.html?id=' + p.id + '\'">' +
-                (images.length > 0
-                    ? '<img src="' + images[0] + '" alt="' + p.name + '" loading="lazy" data-images=\'' + JSON.stringify(images).replace(/'/g, "&#39;") + '\' onmouseenter="hoverProductImg(event)" onmouseleave="leaveProductImg(event)">'
-                    : '<span>' + p.emoji + '</span>') +
-            '</div>' +
-            '<div class="phone-card-body">' +
-                '<div class="phone-card-category">' + (CAT_ID_TO_LABEL[p.category] || p.category) + '</div>' +
-                '<div class="phone-card-name">' + p.name + '</div>' +
-                '<div class="phone-card-desc">' + p.desc + '</div>' +
-                '<div class="phone-card-stock"><i class="fas fa-check-circle"></i> ' + p.stock + '</div>' +
-                '<div class="phone-card-prices">' +
-                    '<span class="phone-card-price">' + p.price.toLocaleString('fr-DZ') + ' DA</span>' +
-                    (p.oldPrice ? '<span class="phone-card-old-price">' + p.oldPrice.toLocaleString('fr-DZ') + ' DA</span>' : '') +
-                '</div>' +
-                '<div class="phone-card-footer">' +
-                    '<button class="btn btn-primary" onclick="event.stopPropagation();addToCart(' + p.id + ')"><i class="fas fa-cart-plus"></i> Ajouter</button>' +
-                    '<button class="btn btn-outline" onclick="event.stopPropagation();window.location.href=\'product.html?id=' + p.id + '\'"><i class="fas fa-eye"></i> Voir</button>' +
-                    '<button class="btn btn-outline ' + (inW ? 'wishlisted' : '') + '" onclick="event.stopPropagation();toggleWishlist(' + p.id + ')"><i class="fas fa-heart"></i></button>' +
-                '</div>' +
-            '</div>';
-        grid.appendChild(card);
+        fragment.appendChild(createPhoneCard(p));
     });
+    grid.appendChild(fragment);
+    observeCards();
+}
+
+function createPhoneCard(p) {
+    var inW = wishlist.includes(p.id);
+    var images = [p.image, p.image2, p.image3].filter(Boolean);
+    var card = document.createElement('div');
+    card.className = 'phone-card';
+    card.innerHTML =
+        (p.badge ? '<span class="phone-card-badge badge-' + p.badge + '">' + (p.badge === 'hot' ? '🔥 Best Seller' : p.badge === 'new' ? '✨ Nouveau' : '💰 Promo') + '</span>' : '') +
+        '<div class="phone-card-image" onclick="window.location.href=\'product.html?id=' + p.id + '\'">' +
+            (images.length > 0
+                ? '<img src="' + images[0] + '" alt="' + p.name + '" loading="lazy" decoding="async" data-images=\'' + JSON.stringify(images).replace(/'/g, "&#39;") + '\' onmouseenter="hoverProductImg(event)" onmouseleave="leaveProductImg(event)">'
+                : '<span>' + p.emoji + '</span>') +
+        '</div>' +
+        '<div class="phone-card-body">' +
+            '<div class="phone-card-category">' + (CAT_ID_TO_LABEL[p.category] || p.category) + '</div>' +
+            '<div class="phone-card-name">' + p.name + '</div>' +
+            '<div class="phone-card-desc">' + p.desc + '</div>' +
+            '<div class="phone-card-stock"><i class="fas fa-check-circle"></i> ' + p.stock + '</div>' +
+            '<div class="phone-card-prices">' +
+                '<span class="phone-card-price">' + p.price.toLocaleString('fr-DZ') + ' DA</span>' +
+                (p.oldPrice ? '<span class="phone-card-old-price">' + p.oldPrice.toLocaleString('fr-DZ') + ' DA</span>' : '') +
+            '</div>' +
+            '<div class="phone-card-footer">' +
+                '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();addToCart(' + p.id + ')"><i class="fas fa-cart-plus"></i></button>' +
+                '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();window.location.href=\'product.html?id=' + p.id + '\'"><i class="fas fa-eye"></i></button>' +
+                '<button class="btn btn-outline btn-sm' + (inW ? ' wishlisted' : '') + '" onclick="event.stopPropagation();toggleWishlist(' + p.id + ')"><i class="fas fa-heart"></i></button>' +
+            '</div>' +
+        '</div>';
+    return card;
 }
 
 // ============================================
-// Render products (index page - all products)
+// Render products (index - all)
 // ============================================
 function renderProducts(list) {
     var grid = document.getElementById('productsGrid');
     if (!grid) return;
-
     grid.innerHTML = '';
-
     if (list.length === 0) {
-        grid.innerHTML = '<div class="empty-state-full"><i class="fas fa-box-open"></i><h3>Aucun produit pour le moment</h3><p>Ajoutez des produits depuis l\'espace administrateur</p></div>';
+        grid.innerHTML = '<div class="empty-state-full"><i class="fas fa-box-open"></i><h3>Aucun produit</h3><p>Ajoutez des produits depuis l\'admin</p></div>';
         return;
     }
-
     var fragment = document.createDocumentFragment();
-
-    list.forEach(function(p) {
-        fragment.appendChild(createProductCard(p));
-    });
-
+    list.forEach(function(p) { fragment.appendChild(createProductCard(p)); });
     grid.appendChild(fragment);
+    observeCards();
 }
 
 function createProductCard(p) {
@@ -301,7 +277,7 @@ function createProductCard(p) {
         '</div>' +
         '<div class="product-image" onclick="window.location.href=\'product.html?id=' + p.id + '\'">' +
             (images.length > 0
-                ? '<img src="' + images[0] + '" alt="' + p.name + '" loading="lazy" data-images=\'' + JSON.stringify(images).replace(/'/g, '&#39;') + '\' onmouseenter="hoverProductImg(event)" onmouseleave="leaveProductImg(event)">'
+                ? '<img src="' + images[0] + '" alt="' + p.name + '" loading="lazy" decoding="async" data-images=\'' + JSON.stringify(images).replace(/'/g, '&#39;') + '\' onmouseenter="hoverProductImg(event)" onmouseleave="leaveProductImg(event)">'
                 : '<span class="product-emoji">' + p.emoji + '</span>') +
         '</div>' +
         '<div class="product-info">' +
@@ -335,7 +311,25 @@ function leaveProductImg(e) {
 }
 
 // ============================================
-// Cart functions
+// Intersection Observer for scroll animations
+// ============================================
+function observeCards() {
+    var observer = new IntersectionObserver(function(entries) {
+        for (var i = 0; i < entries.length; i++) {
+            if (entries[i].isIntersecting) {
+                entries[i].target.classList.add('card-visible');
+                observer.unobserve(entries[i].target);
+            }
+        }
+    }, { threshold: 0.05, rootMargin: '50px' });
+
+    document.querySelectorAll('.phone-card:not(.card-visible), .product-card:not(.card-visible), .cat-card:not(.card-visible), .feature-card:not(.card-visible)').forEach(function(el) {
+        observer.observe(el);
+    });
+}
+
+// ============================================
+// Cart
 // ============================================
 function addToCart(id) {
     var p = products.find(function(x) { return x.id === id; });
@@ -376,7 +370,7 @@ function renderCart() {
     }
     c.innerHTML = cart.map(function(i) {
         return '<div class="cart-item">' +
-            '<div class="cart-item-img">' + (i.image ? '<img src="' + i.image + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px">' : i.emoji) + '</div>' +
+            '<div class="cart-item-img">' + (i.image ? '<img src="' + i.image + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:8px">' : i.emoji) + '</div>' +
             '<div class="cart-item-info">' +
                 '<div class="cart-item-name">' + i.name + '</div>' +
                 '<div class="cart-item-price">' + i.price.toLocaleString('fr-DZ') + ' DA</div>' +
@@ -405,7 +399,7 @@ function closeCart() {
 }
 
 // ============================================
-// Wishlist functions
+// Wishlist
 // ============================================
 function toggleWishlist(id) {
     var idx = wishlist.indexOf(id);
@@ -440,7 +434,7 @@ function renderWishlist() {
     }
     c.innerHTML = wp.map(function(i) {
         return '<div class="cart-item">' +
-            '<div class="cart-item-img">' + (i.image ? '<img src="' + i.image + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px">' : i.emoji) + '</div>' +
+            '<div class="cart-item-img">' + (i.image ? '<img src="' + i.image + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:8px">' : i.emoji) + '</div>' +
             '<div class="cart-item-info">' +
                 '<div class="cart-item-name">' + i.name + '</div>' +
                 '<div class="cart-item-price">' + i.price.toLocaleString('fr-DZ') + ' DA</div>' +
@@ -477,7 +471,7 @@ function addToCartFromModal() { if (currentModalProduct) { addToCart(currentModa
 function toggleWishlistFromModal() { if (currentModalProduct) toggleWishlist(currentModalProduct.id); }
 
 // ============================================
-// Checkout with customer info → Supabase
+// Checkout → Supabase
 // ============================================
 function checkout() {
     if (cart.length === 0) return;
@@ -540,28 +534,14 @@ async function submitOrder() {
 
     if (_db.admin) {
         try {
-            var controller = new AbortController();
-            var timer = setTimeout(function() { controller.abort(); }, 10000);
-            var result = await _db.admin
-                .from('customer_orders')
-                .insert([{
-                    customer_name: name,
-                    customer_phone: phone,
-                    customer_email: email,
-                    shipping_address: address,
-                    shipping_city: city,
-                    items: items,
-                    subtotal: total,
-                    shipping_cost: 0,
-                    total: total,
-                    payment_method: 'cod',
-                    status: 'pending',
-                    notes: notes
-                }]);
-            clearTimeout(timer);
+            var result = await _db.admin.from('customer_orders').insert([{
+                customer_name: name, customer_phone: phone, customer_email: email,
+                shipping_address: address, shipping_city: city, items: items,
+                subtotal: total, shipping_cost: 0, total: total,
+                payment_method: 'cod', status: 'pending', notes: notes
+            }]);
             if (result.error) throw result.error;
         } catch (err) {
-            console.error('Order save error:', err);
             var orders = JSON.parse(localStorage.getItem('ipstore25_orders')) || [];
             orders.push({ name: name, phone: phone, email: email, address: address, city: city, items: items, total: total, notes: notes, date: new Date().toISOString() });
             localStorage.setItem('ipstore25_orders', JSON.stringify(orders));
@@ -591,7 +571,7 @@ function showToast(msg, type) {
     t.className = 'toast ' + type;
     t.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + '"></i> ' + msg;
     c.appendChild(t);
-    setTimeout(function() { t.remove(); }, 3000);
+    setTimeout(function() { t.classList.add('toast-hide'); setTimeout(function() { t.remove(); }, 400); }, 2500);
 }
 
 function toggleMenu() { document.getElementById('mainNav').classList.toggle('open'); }
@@ -609,7 +589,7 @@ function closeAll() {
 document.addEventListener('DOMContentLoaded', async function() {
     setDbStatus('loading');
 
-    await Promise.all([loadCategories(), loadProducts(), loadSettings()]);
+    await loadAllData();
 
     renderProducts(products);
     renderPhones();
@@ -617,14 +597,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateWishlistCount();
 
     setupRealtime();
-
-    if (dbConnected) {
-        hidePageLoader();
-    } else {
-        var ls = document.querySelector('.loader-status');
-        if (ls) ls.textContent = 'Hors ligne - affichage des données en cache';
-        setTimeout(hidePageLoader, 1500);
-    }
+    observeCards();
 
     window.addEventListener('scroll', function() {
         var header = document.querySelector('.header');
@@ -632,23 +605,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (window.scrollY > 50) header.classList.add('scrolled');
             else header.classList.remove('scrolled');
         }
-    });
-
-    var observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.cat-card, .feature-card, .product-card, .phone-card').forEach(function(el) {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(30px)';
-        el.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-        observer.observe(el);
     });
 });
 
