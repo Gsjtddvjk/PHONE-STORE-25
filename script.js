@@ -14,6 +14,8 @@ const categoryLabels = {
     outils: 'Outils'
 };
 
+const CAT_ID_TO_LABEL = { 1: 'Téléphones', 2: 'Écrans', 3: 'Batteries', 4: 'Caméras', 5: 'Boîtiers', 6: 'Accessoires', 7: 'Outils' };
+
 const getClient = () => _db.client;
 const getAdmin = () => _db.admin;
 
@@ -220,7 +222,7 @@ function setupRealtime() {
 // Render phones (index page) - latest 6 only
 // ============================================
 function renderPhones() {
-    var phones = products.filter(function(p) { return p.category === 'telephone'; });
+    var phones = products.filter(function(p) { return p.category == 1; });
     var grid = document.getElementById('phonesGrid');
     if (!grid) return;
 
@@ -245,7 +247,7 @@ function renderPhones() {
                     : '<span>' + p.emoji + '</span>') +
             '</div>' +
             '<div class="phone-card-body">' +
-                '<div class="phone-card-category">' + (categoryLabels[p.category] || p.category) + '</div>' +
+                '<div class="phone-card-category">' + (CAT_ID_TO_LABEL[p.category] || p.category) + '</div>' +
                 '<div class="phone-card-name">' + p.name + '</div>' +
                 '<div class="phone-card-desc">' + p.desc + '</div>' +
                 '<div class="phone-card-stock"><i class="fas fa-check-circle"></i> ' + p.stock + '</div>' +
@@ -303,7 +305,7 @@ function createProductCard(p) {
                 : '<span class="product-emoji">' + p.emoji + '</span>') +
         '</div>' +
         '<div class="product-info">' +
-            '<div class="product-cat">' + (categoryLabels[p.category] || p.category) + '</div>' +
+            '<div class="product-cat">' + (CAT_ID_TO_LABEL[p.category] || p.category) + '</div>' +
             '<div class="product-name">' + p.name + '</div>' +
             '<div class="product-bottom">' +
                 '<div>' +
@@ -456,7 +458,7 @@ function openModal(id) {
     if (!p) return;
     currentModalProduct = p;
     document.getElementById('modalImage').innerHTML = p.image ? '<img src="' + p.image + '" alt="" style="width:100%;height:100%;object-fit:cover">' : '<span>' + p.emoji + '</span>';
-    document.getElementById('modalCategory').textContent = categoryLabels[p.category] || p.category;
+    document.getElementById('modalCategory').textContent = CAT_ID_TO_LABEL[p.category] || p.category;
     document.getElementById('modalTitle').textContent = p.name;
     document.getElementById('modalDesc').textContent = p.desc;
     document.getElementById('modalPrice').textContent = p.price.toLocaleString('fr-DZ') + ' DA';

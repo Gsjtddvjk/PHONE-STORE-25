@@ -171,6 +171,10 @@
         let currentSort = 'default';
         let searchQuery = '';
 
+        const CAT_ID_TO_SLUG = { 1: 'telephone', 2: 'ecran', 3: 'batterie', 4: 'camera', 5: 'boitier', 6: 'accessoire', 7: 'outils' };
+        const CAT_SLUG_TO_ID = { telephone: 1, ecran: 2, batterie: 3, camera: 4, boitier: 5, accessoire: 6, outils: 7 };
+        const CAT_ID_TO_LABEL = { 1: 'Téléphones', 2: 'Écrans', 3: 'Batteries', 4: 'Caméras', 5: 'Boîtiers', 6: 'Accessoires', 7: 'Outils' };
+
         function waitForProducts() {
             return new Promise((resolve) => {
                 if (products.length > 0) { resolve(); return; }
@@ -230,7 +234,7 @@
                             : '<span class="product-emoji">' + p.emoji + '</span>') +
                     '</div>' +
                     '<div class="product-info">' +
-                        '<div class="product-cat">' + (categoryLabels[p.category] || p.category) + '</div>' +
+                        '<div class="product-cat">' + (CAT_ID_TO_LABEL[p.category] || p.category) + '</div>' +
                         '<div class="product-name">' + p.name + '</div>' +
                         '<div class="product-bottom">' +
                             '<div>' +
@@ -260,7 +264,13 @@
         }
 
         function filterAndSort() {
-            var list = currentCategory === 'all' ? products.slice() : products.filter(function(p) { return p.category === currentCategory; });
+            var list;
+            if (currentCategory === 'all') {
+                list = products.slice();
+            } else {
+                var catId = CAT_SLUG_TO_ID[currentCategory] || currentCategory;
+                list = products.filter(function(p) { return p.category == catId; });
+            }
             if (searchQuery) {
                 list = list.filter(function(p) {
                     return p.name.toLowerCase().indexOf(searchQuery) !== -1 || p.desc.toLowerCase().indexOf(searchQuery) !== -1;
