@@ -8,6 +8,10 @@
     <meta name="theme-color" content="#f2f4f8">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📱</text></svg>">
+    <meta property="og:title" content="iPhone Store 25 - Pièces iPhone Premium en Algérie">
+    <meta property="og:description" content="La première destination pour les pièces détachées iPhone en Algérie.">
+    <meta property="og:type" content="website">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,6 +35,7 @@
 
     <div class="bg-effects">
         <div class="bg-gradient"></div>
+        <canvas id="particleCanvas"></canvas>
         <div class="bg-orbs">
             <div class="bg-orb bg-orb-1"></div>
             <div class="bg-orb bg-orb-2"></div>
@@ -103,10 +108,10 @@
         </div>
     </section>
 
-    <section class="categories" id="categories">
+    <section class="categories scroll-reveal-scale" id="categories">
         <div class="container">
             <h2 class="section-title">Catégories <span class="text-gradient">Populaires</span></h2>
-            <div class="categories-grid">
+            <div class="categories-grid stagger-grid">
                 <a href="products.html?cat=telephone" class="cat-card">
                     <div class="cat-icon">📱</div>
                     <h3>Téléphones</h3>
@@ -137,6 +142,11 @@
                     <h3>Accessoires</h3>
                     <p>Coques & Verres</p>
                 </a>
+                <a href="products.html?cat=gaming" class="cat-card">
+                    <div class="cat-icon">🎮</div>
+                    <h3>Gaming</h3>
+                    <p>Consoles & Manettes</p>
+                </a>
             </div>
         </div>
     </section>
@@ -151,8 +161,18 @@
         </div>
     </section>
 
+    <section class="phones-section">
+        <div class="container">
+            <h2 class="section-title">🎮 Appareils <span class="text-gradient">Gaming</span></h2>
+            <div class="products-grid" id="gamingGrid"></div>
+            <div style="text-align:center;margin-top:36px">
+                <a href="products.html?cat=gaming" class="btn btn-primary"><i class="fas fa-gamepad"></i> Voir tout le gaming</a>
+            </div>
+        </div>
+    </section>
+
     <div class="container">
-        <div class="promo-banner">
+        <div class="promo-banner scroll-reveal-left">
             <div class="promo-content">
                 <div class="promo-text">
                     <h2>🔥 Offre Spéciale - Jusqu'à -20%</h2>
@@ -164,7 +184,7 @@
         </div>
     </div>
 
-    <section class="features" id="features">
+    <section class="features scroll-reveal" id="features">
         <div class="container">
             <h2 class="section-title">Pourquoi <span class="text-gradient">iPhone Store 25</span></h2>
             <div class="features-grid">
@@ -254,6 +274,7 @@
     </div>
 
     <div class="overlay" id="overlay" onclick="closeAll()"></div>
+    <div class="cursor-glow" id="cursorGlow"></div>
     <div class="toast-container" id="toastContainer"></div>
 
     <div class="fab-container">

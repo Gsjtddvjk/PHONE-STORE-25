@@ -6,8 +6,8 @@ let siteSettings = {};
 let dbConnected = false;
 let _productsLoaded = false;
 
-const categoryLabels = { telephone: 'Téléphones', ecran: 'Écrans', batterie: 'Batteries', camera: 'Caméras', boitier: 'Boîtiers', accessoire: 'Accessoires', outils: 'Outils' };
-const CAT_ID_TO_LABEL = { 1: 'Téléphones', 2: 'Écrans', 3: 'Batteries', 4: 'Caméras', 5: 'Boîtiers', 6: 'Accessoires', 7: 'Outils' };
+const categoryLabels = { telephone: 'Téléphones', ecran: 'Écrans', batterie: 'Batteries', camera: 'Caméras', boitier: 'Boîtiers', accessoire: 'Accessoires', outils: 'Outils', gaming: 'Gaming' };
+const CAT_ID_TO_LABEL = { 1: 'Téléphones', 2: 'Écrans', 3: 'Batteries', 4: 'Caméras', 5: 'Boîtiers', 6: 'Accessoires', 7: 'Outils', 8: 'Gaming' };
 
 const getClient = () => _db.client;
 const getAdmin = () => _db.admin;
@@ -181,6 +181,8 @@ function setupRealtime() {
             else if (grid) renderProducts(products);
             var phonesGrid = document.getElementById('phonesGrid');
             if (phonesGrid) renderPhones();
+            var gamingGrid = document.getElementById('gamingGrid');
+            if (gamingGrid) renderGaming();
         }).subscribe();
 
     client.channel('settings-changes')
@@ -207,6 +209,27 @@ function renderPhones() {
         return;
     }
     var latest = phones.slice(-6).reverse();
+    var fragment = document.createDocumentFragment();
+    latest.forEach(function(p) {
+        fragment.appendChild(createPhoneCard(p));
+    });
+    grid.appendChild(fragment);
+    requestAnimationFrame(function() { observeCards(); });
+}
+
+// ============================================
+// Render gaming (index) - latest 6
+// ============================================
+function renderGaming() {
+    var gaming = products.filter(function(p) { return p.category == 8; });
+    var grid = document.getElementById('gamingGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    if (gaming.length === 0) {
+        grid.innerHTML = '<div class="empty-state-full"><i class="fas fa-gamepad"></i><h3>Aucun appareil gaming</h3><p>Ajoutez des appareils gaming depuis l\'admin</p></div>';
+        return;
+    }
+    var latest = gaming.slice(-6).reverse();
     var fragment = document.createDocumentFragment();
     latest.forEach(function(p) {
         fragment.appendChild(createPhoneCard(p));
@@ -616,6 +639,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             products = JSON.parse(cached);
             renderProducts(products);
             renderPhones();
+            renderGaming();
             updateCartCount();
             updateWishlistCount();
         } catch(e) {}
@@ -631,6 +655,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (_productsLoaded) {
         renderProducts(products);
         renderPhones();
+        renderGaming();
         updateCartCount();
         updateWishlistCount();
     }
@@ -642,3 +667,146 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeAll(); });
+
+// ============================================
+// PARTICLE CANVAS - Floating Particles
+// ============================================
+(function initParticles() {
+    var canvas = document.getElementById('particleCanvas');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var particles = [];
+    var particleCount = 40;
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function Particle() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedX = (Math.random() - 0.5) * 0.5;
+        this.speedY = (Math.random() - 0.5) * 0.5;
+        this.opacity = Math.random() * 0.3 + 0.1;
+        this.color = ['0,122,255', '88,86,214', '52,199,89', '255,149,0'][Math.floor(Math.random() * 4)];
+    }
+
+    Particle.prototype.update = function() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+    };
+
+    Particle.prototype.draw = function() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(' + this.color + ',' + this.opacity + ')';
+        ctx.fill();
+    };
+
+    for (var i = 0; i < particleCount; i++) particles.push(new Particle());
+
+    function connectParticles() {
+        for (var a = 0; a < particles.length; a++) {
+            for (var b = a + 1; b < particles.length; b++) {
+                var dx = particles[a].x - particles[b].x;
+                var dy = particles[a].y - particles[b].y;
+                var dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 150) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = 'rgba(0,122,255,' + (0.05 * (1 - dist / 150)) + ')';
+                    ctx.lineWidth = 0.5;
+                    ctx.moveTo(particles[a].x, particles[a].y);
+                    ctx.lineTo(particles[b].x, particles[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(function(p) { p.update(); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    animate();
+})();
+
+// ============================================
+// CURSOR GLOW EFFECT
+// ============================================
+(function initCursorGlow() {
+    var glow = document.getElementById('cursorGlow');
+    if (!glow) return;
+    var mx = 0, my = 0, cx = 0, cy = 0;
+    document.addEventListener('mousemove', function(e) { mx = e.clientX; my = e.clientY; });
+    function updateGlow() {
+        cx += (mx - cx) * 0.1;
+        cy += (my - cy) * 0.1;
+        glow.style.left = cx + 'px';
+        glow.style.top = cy + 'px';
+        requestAnimationFrame(updateGlow);
+    }
+    updateGlow();
+})();
+
+// ============================================
+// SCROLL REveal - IntersectionObserver
+// ============================================
+(function initScrollReveal() {
+    var revealElements = document.querySelectorAll('.scroll-reveal, .scroll-reveal-left, .scroll-reveal-right, .scroll-reveal-scale, .stagger-grid');
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+    revealElements.forEach(function(el) { observer.observe(el); });
+
+    // Re-observe after render (for dynamically added elements)
+    setTimeout(function() {
+        document.querySelectorAll('.scroll-reveal:not(.visible), .scroll-reveal-left:not(.visible), .scroll-reveal-right:not(.visible), .scroll-reveal-scale:not(.visible), .stagger-grid:not(.visible)').forEach(function(el) {
+            observer.observe(el);
+        });
+    }, 500);
+})();
+
+// ============================================
+// PARALLAX ON SCROLL
+// ============================================
+(function initParallax() {
+    var orbs = document.querySelectorAll('.bg-orb');
+    if (orbs.length === 0) return;
+    var ticking = false;
+    window.addEventListener('scroll', function() {
+        if (!ticking) {
+            requestAnimationFrame(function() {
+                var scrollY = window.scrollY;
+                orbs.forEach(function(orb, i) {
+                    var speed = (i + 1) * 0.03;
+                    orb.style.transform = 'translateY(' + (scrollY * speed) + 'px)';
+                });
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }, { passive: true });
+})();
+
+// ============================================
+// SECTION TITLE SCROLL ANIMATION
+// ============================================
+(function initSectionTitles() {
+    var titles = document.querySelectorAll('.section-title');
+    titles.forEach(function(title) {
+        title.classList.add('scroll-reveal');
+    });
+})();

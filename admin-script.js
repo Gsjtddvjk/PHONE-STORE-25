@@ -138,7 +138,7 @@ async function fetchOrders() {
 
 const CATEGORY_MAP = {
     telephone: 1, ecran: 2, batterie: 3, camera: 4,
-    boitier: 5, accessoire: 6, outils: 7
+    boitier: 5, accessoire: 6, outils: 7, gaming: 8
 };
 
 async function saveProductToDB(product) {
@@ -334,7 +334,7 @@ function showSection(name) {
 }
 
 function getCatLabel(c) {
-    return { telephone:'Téléphone', ecran:'Écran', batterie:'Batterie', camera:'Caméra', boitier:'Boîtier', accessoire:'Accessoire', outils:'Outils' }[c] || c;
+    return { telephone:'Téléphone', ecran:'Écran', batterie:'Batterie', camera:'Caméra', boitier:'Boîtier', accessoire:'Accessoire', outils:'Outils', gaming:'Gaming' }[c] || c;
 }
 
 function renderDashboard() {
