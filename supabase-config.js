@@ -1,4 +1,4 @@
-// ============================================
+﻿// ============================================
 // iPhone Store 25 - Supabase Config (Fast)
 // ============================================
 const SUPABASE_URL = 'https://mjxbykfvnlqoxakxnant.supabase.co';
@@ -14,10 +14,10 @@ var _db = { client: null, admin: null };
             _db.client = sdk.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
                 realtime: { params: { eventsPerSecond: 10 } },
                 db: { schema: 'public' },
-                global: { headers: { 'x-client-info': 'ipstore25-fast' } }
+                global: { headers: { 'x-client-info': 'nassimmobile-fast' } }
             });
             _db.admin = sdk.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-                global: { headers: { 'x-client-info': 'ipstore25-admin' } }
+                global: { headers: { 'x-client-info': 'nassimmobile-admin' } }
             });
             console.log('[Supabase] Fast init OK');
         } else {

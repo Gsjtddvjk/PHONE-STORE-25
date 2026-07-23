@@ -1,20 +1,17 @@
-let products = [];
-let cart = JSON.parse(localStorage.getItem('ipstore25_cart')) || [];
-let wishlist = JSON.parse(localStorage.getItem('ipstore25_wishlist')) || [];
-let currentModalProduct = null;
-let siteSettings = {};
-let dbConnected = false;
-let _productsLoaded = false;
+﻿var products = [];
+var cart = JSON.parse(localStorage.getItem('nassimmobile_cart')) || [];
+var wishlist = JSON.parse(localStorage.getItem('nassimmobile_wishlist')) || [];
+var currentModalProduct = null;
+var siteSettings = {};
+var dbConnected = false;
+var _productsLoaded = false;
 
-const categoryLabels = { telephone: 'Téléphones', ecran: 'Écrans', batterie: 'Batteries', camera: 'Caméras', boitier: 'Boîtiers', accessoire: 'Accessoires', outils: 'Outils', gaming: 'Gaming' };
-const CAT_ID_TO_LABEL = { 1: 'Téléphones', 2: 'Écrans', 3: 'Batteries', 4: 'Caméras', 5: 'Boîtiers', 6: 'Accessoires', 7: 'Outils', 8: 'Gaming' };
+var categoryLabels = { telephone: 'Téléphones', ecran: 'Écrans', batterie: 'Batteries', camera: 'Caméras', boitier: 'Boîtiers', accessoire: 'Accessoires', outils: 'Outils', gaming: 'Gaming' };
+var CAT_ID_TO_LABEL = { 1: 'Téléphones', 2: 'Écrans', 3: 'Batteries', 4: 'Caméras', 5: 'Boîtiers', 6: 'Accessoires', 7: 'Outils', 8: 'Gaming' };
 
-const getClient = () => _db.client;
-const getAdmin = () => _db.admin;
+var getClient = function() { return _db.client; };
+var getAdmin = function() { return _db.admin; };
 
-// ============================================
-// DB Status
-// ============================================
 function setDbStatus(status) {
     var el = document.getElementById('dbStatus');
     var txt = document.getElementById('dbStatusText');
@@ -23,17 +20,11 @@ function setDbStatus(status) {
     txt.textContent = { connected: 'En ligne', disconnected: 'Hors ligne', loading: 'Connexion...' }[status] || status;
 }
 
-// ============================================
-// Page Loader
-// ============================================
 function hidePageLoader() {
     var loader = document.getElementById('pageLoader');
     if (loader) loader.classList.add('hidden');
 }
 
-// ============================================
-// Supabase query with short timeout + cache
-// ============================================
 async function supabaseQuery(table, options) {
     options = options || {};
     var select = options.select || '*';
@@ -41,7 +32,7 @@ async function supabaseQuery(table, options) {
     var order = options.order;
     var limit = options.limit;
     var timeout = options.timeout || 3000;
-    var cacheKey = 'ipstore25_cache_' + table;
+    var cacheKey = 'nassimmobile_cache_' + table;
 
     if (!getClient()) {
         var cached = localStorage.getItem(cacheKey);
@@ -72,27 +63,14 @@ async function supabaseQuery(table, options) {
     }
 }
 
-// ============================================
-// Load all data (fast - only await products)
-// ============================================
 async function loadAllData() {
     setDbStatus('loading');
-
     await loadProducts();
-
-    if (dbConnected) {
-        setDbStatus('connected');
-    } else {
-        setDbStatus('disconnected');
-    }
+    if (dbConnected) { setDbStatus('connected'); } else { setDbStatus('disconnected'); }
     hidePageLoader();
-
     Promise.all([loadCategories(), loadSettings()]);
 }
 
-// ============================================
-// Load products
-// ============================================
 async function loadProducts() {
     var data = await supabaseQuery('products', {
         select: '*',
@@ -104,9 +82,7 @@ async function loadProducts() {
     if (data) {
         products = data.map(function(p) {
             return {
-                id: p.id,
-                name: p.name,
-                category: p.category_id,
+                id: p.id, name: p.name, category: p.category_id,
                 price: parseFloat(p.price),
                 oldPrice: p.old_price ? parseFloat(p.old_price) : null,
                 emoji: p.emoji || '📱',
@@ -119,16 +95,13 @@ async function loadProducts() {
             };
         });
         dbConnected = true;
-        localStorage.setItem('ipstore25_products', JSON.stringify(products));
+        localStorage.setItem('nassimmobile_products', JSON.stringify(products));
     } else {
-        products = JSON.parse(localStorage.getItem('ipstore25_products')) || [];
+        products = JSON.parse(localStorage.getItem('nassimmobile_products')) || [];
     }
     _productsLoaded = true;
 }
 
-// ============================================
-// Load categories
-// ============================================
 async function loadCategories() {
     var data = await supabaseQuery('categories', {
         select: '*',
@@ -139,9 +112,6 @@ async function loadCategories() {
     if (data) data.forEach(function(c) { categoryLabels[c.slug] = c.name; });
 }
 
-// ============================================
-// Load settings
-// ============================================
 async function loadSettings() {
     var data = await supabaseQuery('settings', { select: '*', timeout: 5000 });
     if (data) {
@@ -166,9 +136,6 @@ function applySettings() {
     }
 }
 
-// ============================================
-// REAL-TIME
-// ============================================
 function setupRealtime() {
     var client = getClient();
     if (!client) return;
@@ -196,9 +163,6 @@ function setupRealtime() {
         }).subscribe();
 }
 
-// ============================================
-// Render phones (index) - latest 6
-// ============================================
 function renderPhones() {
     var phones = products.filter(function(p) { return p.category == 1; });
     var grid = document.getElementById('phonesGrid');
@@ -210,16 +174,11 @@ function renderPhones() {
     }
     var latest = phones.slice(-6).reverse();
     var fragment = document.createDocumentFragment();
-    latest.forEach(function(p) {
-        fragment.appendChild(createPhoneCard(p));
-    });
+    latest.forEach(function(p) { fragment.appendChild(createPhoneCard(p)); });
     grid.appendChild(fragment);
     requestAnimationFrame(function() { observeCards(); });
 }
 
-// ============================================
-// Render gaming (index) - latest 6
-// ============================================
 function renderGaming() {
     var gaming = products.filter(function(p) { return p.category == 8; });
     var grid = document.getElementById('gamingGrid');
@@ -231,9 +190,7 @@ function renderGaming() {
     }
     var latest = gaming.slice(-6).reverse();
     var fragment = document.createDocumentFragment();
-    latest.forEach(function(p) {
-        fragment.appendChild(createPhoneCard(p));
-    });
+    latest.forEach(function(p) { fragment.appendChild(createPhoneCard(p)); });
     grid.appendChild(fragment);
     requestAnimationFrame(function() { observeCards(); });
 }
@@ -268,9 +225,6 @@ function createPhoneCard(p) {
     return card;
 }
 
-// ============================================
-// Render products (index - all)
-// ============================================
 function renderProducts(list) {
     var grid = document.getElementById('productsGrid');
     if (!grid) return;
@@ -320,7 +274,7 @@ function hoverProductImg(e) {
     try {
         var images = JSON.parse(img.dataset.images);
         if (images.length > 1) { img.dataset.idx = '1'; img.src = images[1]; }
-    } catch {}
+    } catch (err) {}
 }
 
 function leaveProductImg(e) {
@@ -328,12 +282,9 @@ function leaveProductImg(e) {
     try {
         var images = JSON.parse(img.dataset.images);
         img.src = images[0]; delete img.dataset.idx;
-    } catch {}
+    } catch (err) {}
 }
 
-// ============================================
-// Intersection Observer for scroll animations
-// ============================================
 var _cardObserver = null;
 function observeCards() {
     if (_cardObserver) _cardObserver.disconnect();
@@ -351,9 +302,6 @@ function observeCards() {
     });
 }
 
-// ============================================
-// Cart
-// ============================================
 function addToCart(id) {
     var p = products.find(function(x) { return x.id === id; });
     if (!p) return;
@@ -376,7 +324,7 @@ function changeQty(id, d) {
     saveCart(); renderCart();
 }
 
-function saveCart() { localStorage.setItem('ipstore25_cart', JSON.stringify(cart)); }
+function saveCart() { localStorage.setItem('nassimmobile_cart', JSON.stringify(cart)); }
 
 function updateCartCount() {
     var el = document.getElementById('cartCount');
@@ -421,14 +369,11 @@ function closeCart() {
     document.getElementById('overlay').classList.remove('active');
 }
 
-// ============================================
-// Wishlist
-// ============================================
 function toggleWishlist(id) {
     var idx = wishlist.indexOf(id);
     if (idx > -1) { wishlist.splice(idx, 1); showToast('Retiré des favoris', 'success'); }
     else { wishlist.push(id); showToast('Ajouté aux favoris', 'success'); }
-    localStorage.setItem('ipstore25_wishlist', JSON.stringify(wishlist));
+    localStorage.setItem('nassimmobile_wishlist', JSON.stringify(wishlist));
     updateWishlistCount();
 }
 
@@ -467,9 +412,6 @@ function renderWishlist() {
     }).join('');
 }
 
-// ============================================
-// Product modal
-// ============================================
 function openModal(id) {
     var p = products.find(function(x) { return x.id === id; });
     if (!p) return;
@@ -493,9 +435,6 @@ function closeModal() {
 function addToCartFromModal() { if (currentModalProduct) { addToCart(currentModalProduct.id); closeModal(); } }
 function toggleWishlistFromModal() { if (currentModalProduct) toggleWishlist(currentModalProduct.id); }
 
-// ============================================
-// Checkout → Supabase
-// ============================================
 function checkout() {
     if (cart.length === 0) return;
     openCheckoutModal();
@@ -507,7 +446,6 @@ function openCheckoutModal() {
     if (existing) existing.remove();
 
     var total = cart.reduce(function(s, i) { return s + i.price * i.qty; }, 0);
-    var itemsSummary = cart.map(function(i) { return i.name + ' x' + i.qty; }).join(', ');
 
     var modal = document.createElement('div');
     modal.id = 'checkoutModal';
@@ -565,14 +503,14 @@ async function submitOrder() {
             }]);
             if (result.error) throw result.error;
         } catch (err) {
-            var orders = JSON.parse(localStorage.getItem('ipstore25_orders')) || [];
+            var orders = JSON.parse(localStorage.getItem('nassimmobile_orders')) || [];
             orders.push({ name: name, phone: phone, email: email, address: address, city: city, items: items, total: total, notes: notes, date: new Date().toISOString() });
-            localStorage.setItem('ipstore25_orders', JSON.stringify(orders));
+            localStorage.setItem('nassimmobile_orders', JSON.stringify(orders));
         }
     } else {
-        var orders = JSON.parse(localStorage.getItem('ipstore25_orders')) || [];
+        var orders = JSON.parse(localStorage.getItem('nassimmobile_orders')) || [];
         orders.push({ name: name, phone: phone, email: email, address: address, city: city, items: items, total: total, notes: notes, date: new Date().toISOString() });
-        localStorage.setItem('ipstore25_orders', JSON.stringify(orders));
+        localStorage.setItem('nassimmobile_orders', JSON.stringify(orders));
     }
 
     closeCheckoutModal();
@@ -584,9 +522,6 @@ async function submitOrder() {
     window.open('https://wa.me/' + phoneClean + '?text=' + waMsg, '_blank');
 }
 
-// ============================================
-// Toast
-// ============================================
 function showToast(msg, type) {
     type = type || 'success';
     var c = document.getElementById('toastContainer');
@@ -606,9 +541,6 @@ function closeAll() {
     document.getElementById('overlay').classList.remove('active');
 }
 
-// ============================================
-// Scroll header
-// ============================================
 var _lastScroll = 0;
 var _scrollTicking = false;
 function onScroll() {
@@ -626,14 +558,10 @@ function onScroll() {
     }
 }
 
-// ============================================
-// Initialize
-// ============================================
 document.addEventListener('DOMContentLoaded', async function() {
     setDbStatus('loading');
 
-    // Load from cache first for instant render
-    var cached = localStorage.getItem('ipstore25_products');
+    var cached = localStorage.getItem('nassimmobile_products');
     if (cached) {
         try {
             products = JSON.parse(cached);
@@ -642,16 +570,14 @@ document.addEventListener('DOMContentLoaded', async function() {
             renderGaming();
             updateCartCount();
             updateWishlistCount();
-        } catch(e) {}
+        } catch (e) {}
     }
 
     hidePageLoader();
     observeCards();
 
-    // Now fetch fresh data
     await loadAllData();
 
-    // Re-render with fresh data
     if (_productsLoaded) {
         renderProducts(products);
         renderPhones();
@@ -668,9 +594,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeAll(); });
 
-// ============================================
-// PARTICLE CANVAS - Floating Particles
-// ============================================
 (function initParticles() {
     var canvas = document.getElementById('particleCanvas');
     if (!canvas) return;
@@ -738,9 +661,6 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') close
     animate();
 })();
 
-// ============================================
-// CURSOR GLOW EFFECT
-// ============================================
 (function initCursorGlow() {
     var glow = document.getElementById('cursorGlow');
     if (!glow) return;
@@ -756,9 +676,6 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') close
     updateGlow();
 })();
 
-// ============================================
-// SCROLL REveal - IntersectionObserver
-// ============================================
 (function initScrollReveal() {
     var revealElements = document.querySelectorAll('.scroll-reveal, .scroll-reveal-left, .scroll-reveal-right, .scroll-reveal-scale, .stagger-grid');
     var observer = new IntersectionObserver(function(entries) {
@@ -771,7 +688,6 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') close
     }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
     revealElements.forEach(function(el) { observer.observe(el); });
 
-    // Re-observe after render (for dynamically added elements)
     setTimeout(function() {
         document.querySelectorAll('.scroll-reveal:not(.visible), .scroll-reveal-left:not(.visible), .scroll-reveal-right:not(.visible), .scroll-reveal-scale:not(.visible), .stagger-grid:not(.visible)').forEach(function(el) {
             observer.observe(el);
@@ -779,9 +695,6 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') close
     }, 500);
 })();
 
-// ============================================
-// PARALLAX ON SCROLL
-// ============================================
 (function initParallax() {
     var orbs = document.querySelectorAll('.bg-orb');
     if (orbs.length === 0) return;
@@ -801,9 +714,6 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') close
     }, { passive: true });
 })();
 
-// ============================================
-// SECTION TITLE SCROLL ANIMATION
-// ============================================
 (function initSectionTitles() {
     var titles = document.querySelectorAll('.section-title');
     titles.forEach(function(title) {

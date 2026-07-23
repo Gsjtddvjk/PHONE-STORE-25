@@ -1,10 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Admin - iPhone Store 25</title>
+    <title>Admin - Nassim Mobile</title>
     <meta name="theme-color" content="#f2f4f8">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📱</text></svg>">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,7 +17,7 @@
 <body>
     <div class="page-loader" id="pageLoader">
         <div class="loader-logo">📱</div>
-        <div class="loader-text">iPhone<span>Store</span>25</div>
+        <div class="loader-text">Nassim<span>Mobile</span></div>
         <div class="loader-bar"><div class="loader-bar-inner"></div></div>
         <div class="loader-status">Connexion en cours...</div>
     </div>
@@ -26,7 +27,10 @@
             <div class="login-icon"><i class="fas fa-lock"></i></div>
             <h2>Administration</h2>
             <p>Entrez le mot de passe pour accéder</p>
-            <div class="form-group"><label><i class="fas fa-key"></i> Mot de passe</label><input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()"></div>
+            <div class="form-group">
+                <label><i class="fas fa-key"></i> Mot de passe</label>
+                <input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()">
+            </div>
             <button class="btn btn-primary login-btn" onclick="adminLogin()"><i class="fas fa-sign-in-alt"></i> Se Connecter</button>
             <p class="login-error" id="loginError"><i class="fas fa-exclamation-circle"></i> Mot de passe incorrect!</p>
         </div>
@@ -35,7 +39,7 @@
     <div class="admin-layout" id="adminLayout" style="display:none">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <a href="index.html" class="sidebar-logo">📱 iPhone<span>Store</span>25</a>
+                <a href="index.html" class="sidebar-logo">📱 Nassim<span>Mobile</span></a>
                 <button class="sidebar-close" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
             </div>
             <nav class="sidebar-nav">
@@ -49,7 +53,10 @@
             <div class="sidebar-footer">
                 <div class="admin-profile">
                     <div class="admin-avatar">A</div>
-                    <div class="admin-info"><span class="admin-name">Admin</span><span class="admin-role">Super Admin</span></div>
+                    <div class="admin-info">
+                        <span class="admin-name">Admin</span>
+                        <span class="admin-role">Super Admin</span>
+                    </div>
                 </div>
             </div>
         </aside>
@@ -72,13 +79,31 @@
                 <div class="section active" id="section-dashboard">
                     <h2 class="page-title">Tableau de Bord</h2>
                     <div class="stats-grid">
-                        <div class="stat-card"><div class="stat-icon stat-blue"><i class="fas fa-box"></i></div><div><div class="stat-value" id="totalProducts">0</div><div class="stat-label">Produits</div></div></div>
-                        <div class="stat-card"><div class="stat-icon stat-green"><i class="fas fa-shopping-bag"></i></div><div><div class="stat-value" id="totalOrders">0</div><div class="stat-label">Commandes</div></div></div>
-                        <div class="stat-card"><div class="stat-icon stat-orange"><i class="fas fa-coins"></i></div><div><div class="stat-value" id="totalRevenue">0</div><div class="stat-label">Revenu (DA)</div></div></div>
+                        <div class="stat-card">
+                            <div class="stat-icon stat-blue"><i class="fas fa-box"></i></div>
+                            <div><div class="stat-value" id="totalProducts">0</div><div class="stat-label">Produits</div></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon stat-green"><i class="fas fa-shopping-bag"></i></div>
+                            <div><div class="stat-value" id="totalOrders">0</div><div class="stat-label">Commandes</div></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon stat-orange"><i class="fas fa-coins"></i></div>
+                            <div><div class="stat-value" id="totalRevenue">0</div><div class="stat-label">Revenu (DA)</div></div>
+                        </div>
                     </div>
                     <div class="dashboard-grid">
-                        <div class="card"><div class="card-header"><h3>Commandes Récentes</h3></div><table class="data-table"><thead><tr><th>ID</th><th>Client</th><th>Total</th><th>Statut</th></tr></thead><tbody id="recentOrdersBody"></tbody></table></div>
-                        <div class="card"><div class="card-header"><h3>Top Produits</h3></div><div id="topProductsList" style="padding:14px"></div></div>
+                        <div class="card">
+                            <div class="card-header"><h3>Commandes Récentes</h3></div>
+                            <table class="data-table">
+                                <thead><tr><th>ID</th><th>Client</th><th>Total</th><th>Statut</th></tr></thead>
+                                <tbody id="recentOrdersBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="card">
+                            <div class="card-header"><h3>Top Produits</h3></div>
+                            <div id="topProductsList" style="padding:14px"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -102,11 +127,23 @@
                         <div class="search-box-admin"><i class="fas fa-search"></i><input type="text" placeholder="Rechercher..." id="adminSearch" oninput="filterAdminProducts()"></div>
                     </div>
                     <table class="data-table full-table">
-                        <thead><tr><th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th><th>ID</th><th>Produit</th><th>Catégorie</th><th>Prix</th><th>Stock</th><th>Actions</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                                <th>ID</th>
+                                <th>Produit</th>
+                                <th>Catégorie</th>
+                                <th>Prix</th>
+                                <th>Stock</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
                         <tbody id="productsTableBody"></tbody>
                     </table>
                     <div id="pagination" class="pagination"></div>
-                    <div style="margin-top:10px"><button class="btn btn-danger" id="deleteSelectedBtn" onclick="deleteSelected()" style="display:none"><i class="fas fa-trash"></i> Supprimer</button></div>
+                    <div style="margin-top:10px">
+                        <button class="btn btn-danger" id="deleteSelectedBtn" onclick="deleteSelected()" style="display:none"><i class="fas fa-trash"></i> Supprimer</button>
+                    </div>
                 </div>
 
                 <div class="section" id="section-orders">
@@ -131,24 +168,33 @@
                 <div class="section" id="section-settings">
                     <h2 class="page-title">Paramètres</h2>
                     <div class="settings-grid">
-                        <div class="card"><div class="card-header"><h3><i class="fas fa-store"></i> Magasin</h3></div><div class="settings-form">
-                            <div class="form-group"><label><i class="fas fa-signature"></i> Nom</label><input type="text" id="storeName" value="iPhone Store 25"></div>
-                            <div class="form-group"><label><i class="fas fa-envelope"></i> Email</label><input type="email" id="storeEmail" value="contact@iphonestore25.dz"></div>
-                            <div class="form-group"><label><i class="fas fa-phone"></i> Téléphone</label><input type="text" id="storePhone" value="+213 775 765 743"></div>
-                            <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Enregistrer</button>
-                        </div></div>
-                        <div class="card"><div class="card-header"><h3><i class="fas fa-key"></i> Changer Mot de Passe</h3></div><div class="settings-form">
-                            <div class="form-group"><label><i class="fas fa-lock"></i> Mot de passe actuel</label><input type="password" id="currentPassword" placeholder="Mot de passe actuel"></div>
-                            <div class="form-group"><label><i class="fas fa-lock"></i> Nouveau mot de passe</label><input type="password" id="newPassword" placeholder="Min 4 caractères"></div>
-                            <div class="form-group"><label><i class="fas fa-check-double"></i> Confirmer</label><input type="password" id="confirmPassword" placeholder="Confirmer le mot de passe"></div>
-                            <button class="btn btn-primary" onclick="changePassword()"><i class="fas fa-key"></i> Changer le Mot de Passe</button>
-                        </div></div>
-                        <div class="card"><div class="card-header"><h3><i class="fas fa-database"></i> Backup</h3></div><div class="settings-form">
-                            <p class="setting-desc">Exportez ou importez les données du magasin.</p>
-                            <button class="btn btn-primary" onclick="exportData()"><i class="fas fa-download"></i> Exporter</button>
-                            <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()"><i class="fas fa-upload"></i> Importer</button>
-                            <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-                        </div></div>
+                        <div class="card">
+                            <div class="card-header"><h3><i class="fas fa-store"></i> Magasin</h3></div>
+                            <div class="settings-form">
+                                <div class="form-group"><label><i class="fas fa-signature"></i> Nom</label><input type="text" id="storeName" value="Nassim Mobile"></div>
+                                <div class="form-group"><label><i class="fas fa-envelope"></i> Email</label><input type="email" id="storeEmail" value="contact@NassimMobile.dz"></div>
+                                <div class="form-group"><label><i class="fas fa-phone"></i> Téléphone</label><input type="text" id="storePhone" value="+213 775 765 743"></div>
+                                <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Enregistrer</button>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header"><h3><i class="fas fa-key"></i> Changer Mot de Passe</h3></div>
+                            <div class="settings-form">
+                                <div class="form-group"><label><i class="fas fa-lock"></i> Mot de passe actuel</label><input type="password" id="currentPassword" placeholder="Mot de passe actuel"></div>
+                                <div class="form-group"><label><i class="fas fa-lock"></i> Nouveau mot de passe</label><input type="password" id="newPassword" placeholder="Min 4 caractères"></div>
+                                <div class="form-group"><label><i class="fas fa-check-double"></i> Confirmer</label><input type="password" id="confirmPassword" placeholder="Confirmer le mot de passe"></div>
+                                <button class="btn btn-primary" onclick="changePassword()"><i class="fas fa-key"></i> Changer le Mot de Passe</button>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header"><h3><i class="fas fa-database"></i> Backup</h3></div>
+                            <div class="settings-form">
+                                <p class="setting-desc">Exportez ou importez les données du magasin.</p>
+                                <button class="btn btn-primary" onclick="exportData()"><i class="fas fa-download"></i> Exporter</button>
+                                <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()"><i class="fas fa-upload"></i> Importer</button>
+                                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -157,12 +203,27 @@
 
     <div class="modal-overlay" id="productModal">
         <div class="modal">
-            <div class="modal-header"><h3 id="productModalTitle">Ajouter un Produit</h3><button class="modal-close" onclick="closeProductModal()"><i class="fas fa-times"></i></button></div>
+            <div class="modal-header">
+                <h3 id="productModalTitle">Ajouter un Produit</h3>
+                <button class="modal-close" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
+            </div>
             <div class="modal-body">
                 <input type="hidden" id="editProductId">
                 <div class="form-row">
                     <div class="form-group"><label><i class="fas fa-box"></i> Nom *</label><input type="text" id="prodName" placeholder="Ex: iPhone 15 Pro Max"></div>
-                    <div class="form-group"><label><i class="fas fa-tags"></i> Catégorie</label><select id="prodCategory"><option value="telephone">📱 Téléphone</option><option value="ecran">🖥️ Écran</option><option value="batterie">🔋 Batterie</option><option value="camera">📷 Caméra</option><option value="boitier">🛡️ Boîtier</option><option value="accessoire">✨ Accessoire</option><option value="outils">🔧 Outils</option><option value="gaming">🎮 Gaming</option></select></div>
+                    <div class="form-group">
+                        <label><i class="fas fa-tags"></i> Catégorie</label>
+                        <select id="prodCategory">
+                            <option value="telephone">📱 Téléphone</option>
+                            <option value="ecran">🖥️ Écran</option>
+                            <option value="batterie">🔋 Batterie</option>
+                            <option value="camera">📷 Caméra</option>
+                            <option value="boitier">🛡️ Boîtier</option>
+                            <option value="accessoire">✨ Accessoire</option>
+                            <option value="outils">🔧 Outils</option>
+                            <option value="gaming">🎮 Gaming</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label><i class="fas fa-coins"></i> Prix (DA) *</label><input type="number" id="prodPrice" placeholder="15000"></div>
@@ -209,37 +270,50 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label><i class="fas fa-smile"></i> Emoji</label><input type="text" id="prodEmoji" value="📱"></div>
-                    <div class="form-group"><label><i class="fas fa-medal"></i> Badge</label><select id="prodBadge"><option value="">Aucun</option><option value="new">Nouveau</option><option value="hot">Best Seller</option><option value="sale">Promo</option></select></div>
+                    <div class="form-group">
+                        <label><i class="fas fa-medal"></i> Badge</label>
+                        <select id="prodBadge">
+                            <option value="">Aucun</option>
+                            <option value="new">Nouveau</option>
+                            <option value="hot">Best Seller</option>
+                            <option value="sale">Promo</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group"><label><i class="fas fa-align-left"></i> Description</label><textarea id="prodDesc" rows="3" placeholder="Description..."></textarea></div>
+                <div class="form-group">
+                    <label><i class="fas fa-align-left"></i> Description</label>
+                    <textarea id="prodDesc" rows="3" placeholder="Description..."></textarea>
+                </div>
             </div>
-            <div class="modal-footer"><button class="btn btn-secondary" onclick="closeProductModal()">Annuler</button><button class="btn btn-primary" onclick="saveProduct()"><i class="fas fa-save"></i> Enregistrer</button></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeProductModal()">Annuler</button>
+                <button class="btn btn-primary" onclick="saveProduct()"><i class="fas fa-save"></i> Enregistrer</button>
+            </div>
         </div>
     </div>
 
     <div class="toast-container" id="toastContainer"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="supabase-config.js" defer></script>
     <script src="admin-script.js" defer></script>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', function() {
             setDbStatus('loading');
-
-            await fetchAdminPass();
-
-            if (_db.admin) {
-                try {
-                    const controller = new AbortController();
-                    const timer = setTimeout(() => controller.abort(), 10000);
-                    const { error } = await _db.admin.from('settings').select('key').limit(1);
-                    clearTimeout(timer);
-                    setDbStatus(error ? 'disconnected' : 'connected');
-                } catch { setDbStatus('disconnected'); }
-            } else {
+            fetchAdminPass().then(function() {
+                if (_db.admin) {
+                    return _db.admin.from('settings').select('key').limit(1).then(function(result) {
+                        setDbStatus(result.error ? 'disconnected' : 'connected');
+                    }).catch(function() { setDbStatus('disconnected'); });
+                } else {
+                    setDbStatus('disconnected');
+                }
+            }).then(function() {
+                hidePageLoader();
+            }).catch(function() {
                 setDbStatus('disconnected');
-            }
-
-            hidePageLoader();
+                hidePageLoader();
+            });
         });
     </script>
 </body>

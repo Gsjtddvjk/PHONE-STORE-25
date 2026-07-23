@@ -1,51 +1,45 @@
-const PASS_KEY = 'ipstore25_admin_pass';
-const DEFAULT_PASS = 'admin123';
-const CLOUDINARY_CLOUD = 'qqftt7fm';
-const CLOUDINARY_PRESET = 'ipstore25_preset';
+﻿var PASS_KEY = 'nassimmobile_admin_pass';
+var DEFAULT_PASS = 'admin123';
+var CLOUDINARY_CLOUD = 'qqftt7fm';
+var CLOUDINARY_PRESET = 'nassimmobile_preset';
 
-let adminProducts = [];
-let orders = [];
-let selectedProducts = [];
-let currentPage = 1;
-const ITEMS_PER_PAGE = 50;
-let adminPass = null;
+var adminProducts = [];
+var orders = [];
+var selectedProducts = [];
+var currentPage = 1;
+var ITEMS_PER_PAGE = 50;
+var adminPass = null;
 
-// ============================================
-// Page Loader
-// ============================================
 function hidePageLoader() {
-    const loader = document.getElementById('pageLoader');
+    var loader = document.getElementById('pageLoader');
     if (loader) loader.classList.add('hidden');
 }
 
 function setDbStatus(status) {
-    const el = document.getElementById('dbStatus');
-    const txt = document.getElementById('dbStatusText');
+    var el = document.getElementById('dbStatus');
+    var txt = document.getElementById('dbStatusText');
     if (!el || !txt) return;
     el.className = 'db-status ' + status;
     txt.textContent = { connected: 'En ligne', disconnected: 'Hors ligne', loading: 'Connexion...' }[status] || status;
 }
 
-// ============================================
-// Get admin password (Supabase first, localStorage fallback)
-// ============================================
 async function fetchAdminPass() {
-    const admin = _db.admin;
+    var admin = _db.admin;
     if (!admin) {
         adminPass = localStorage.getItem(PASS_KEY) || DEFAULT_PASS;
         return;
     }
     try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 10000);
-        const { data, error } = await _db.admin
+        var controller = new AbortController();
+        var timer = setTimeout(function() { controller.abort(); }, 10000);
+        var result = await _db.admin
             .from('settings')
             .select('value')
             .eq('key', 'admin_pass')
             .single();
         clearTimeout(timer);
-        if (error) throw error;
-        adminPass = data?.value || localStorage.getItem(PASS_KEY) || DEFAULT_PASS;
+        if (result.error) throw result.error;
+        adminPass = (result.data && result.data.value) || localStorage.getItem(PASS_KEY) || DEFAULT_PASS;
     } catch (err) {
         console.error('Error fetching password:', err);
         adminPass = localStorage.getItem(PASS_KEY) || DEFAULT_PASS;
@@ -54,89 +48,80 @@ async function fetchAdminPass() {
 
 function getPass() { return adminPass || localStorage.getItem(PASS_KEY) || DEFAULT_PASS; }
 
-// ============================================
-// Supabase Helpers with timeout + cache
-// ============================================
 async function fetchProducts() {
-    const cacheKey = 'ipstore25_cache_admin_products';
+    var cacheKey = 'nassimmobile_cache_admin_products';
 
     if (!_db.admin) {
-        adminProducts = JSON.parse(localStorage.getItem('ipstore25_products')) || [];
+        adminProducts = JSON.parse(localStorage.getItem('nassimmobile_products')) || [];
         return;
     }
     try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 10000);
-        const { data, error } = await _db.admin
+        var controller = new AbortController();
+        var timer = setTimeout(function() { controller.abort(); }, 10000);
+        var result = await _db.admin
             .from('products')
             .select('*')
             .order('id', { ascending: true });
         clearTimeout(timer);
-        if (error) throw error;
-        adminProducts = data.map(p => ({
-            id: p.id,
-            name: p.name,
-            category: p.category_id,
-            price: parseFloat(p.price),
-            oldPrice: p.old_price ? parseFloat(p.old_price) : null,
-            emoji: p.emoji || '📱',
-            image: p.image_url,
-            image2: p.image_url2 || null,
-            image3: p.image_url3 || null,
-            badge: p.badge,
-            desc: p.description || '',
-            stock: p.stock || 'En stock'
-        }));
+        if (result.error) throw result.error;
+        adminProducts = result.data.map(function(p) {
+            return {
+                id: p.id, name: p.name, category: p.category_id,
+                price: parseFloat(p.price),
+                oldPrice: p.old_price ? parseFloat(p.old_price) : null,
+                emoji: p.emoji || '📱',
+                image: p.image_url,
+                image2: p.image_url2 || null,
+                image3: p.image_url3 || null,
+                badge: p.badge,
+                desc: p.description || '',
+                stock: p.stock || 'En stock'
+            };
+        });
         localStorage.setItem(cacheKey, JSON.stringify(adminProducts));
     } catch (err) {
         console.error('Error:', err);
-        const cached = localStorage.getItem(cacheKey);
-        adminProducts = cached ? JSON.parse(cached) : JSON.parse(localStorage.getItem('ipstore25_products')) || [];
+        var cached = localStorage.getItem(cacheKey);
+        adminProducts = cached ? JSON.parse(cached) : JSON.parse(localStorage.getItem('nassimmobile_products')) || [];
     }
 }
 
 async function fetchOrders() {
-    const cacheKey = 'ipstore25_cache_admin_orders';
+    var cacheKey = 'nassimmobile_cache_admin_orders';
 
     if (!_db.admin) {
-        orders = JSON.parse(localStorage.getItem('ipstore25_orders')) || [];
+        orders = JSON.parse(localStorage.getItem('nassimmobile_orders')) || [];
         return;
     }
     try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 10000);
-        const { data, error } = await _db.admin
+        var controller = new AbortController();
+        var timer = setTimeout(function() { controller.abort(); }, 10000);
+        var result = await _db.admin
             .from('orders')
             .select('*')
             .order('id', { ascending: false });
         clearTimeout(timer);
-        if (error) throw error;
-        orders = data.map(o => ({
-            id: o.id,
-            orderNumber: o.order_number,
-            customer: o.customer_name,
-            phone: o.customer_phone,
-            email: o.customer_email,
-            address: o.shipping_address,
-            city: o.shipping_city,
-            status: o.status,
-            paymentMethod: o.payment_method,
-            paymentStatus: o.payment_status,
-            subtotal: parseFloat(o.subtotal),
-            shipping: parseFloat(o.shipping_cost),
-            total: parseFloat(o.total),
-            notes: o.notes,
-            date: new Date(o.created_at).toLocaleDateString('fr-FR')
-        }));
+        if (result.error) throw result.error;
+        orders = result.data.map(function(o) {
+            return {
+                id: o.id, orderNumber: o.order_number,
+                customer: o.customer_name, phone: o.customer_phone, email: o.customer_email,
+                address: o.shipping_address, city: o.shipping_city,
+                status: o.status, paymentMethod: o.payment_method, paymentStatus: o.payment_status,
+                subtotal: parseFloat(o.subtotal), shipping: parseFloat(o.shipping_cost), total: parseFloat(o.total),
+                notes: o.notes,
+                date: new Date(o.created_at).toLocaleDateString('fr-FR')
+            };
+        });
         localStorage.setItem(cacheKey, JSON.stringify(orders));
     } catch (err) {
         console.error('Error:', err);
-        const cached = localStorage.getItem(cacheKey);
-        orders = cached ? JSON.parse(cached) : JSON.parse(localStorage.getItem('ipstore25_orders')) || [];
+        var cached = localStorage.getItem(cacheKey);
+        orders = cached ? JSON.parse(cached) : JSON.parse(localStorage.getItem('nassimmobile_orders')) || [];
     }
 }
 
-const CATEGORY_MAP = {
+var CATEGORY_MAP = {
     telephone: 1, ecran: 2, batterie: 3, camera: 4,
     boitier: 5, accessoire: 6, outils: 7, gaming: 8
 };
@@ -144,8 +129,8 @@ const CATEGORY_MAP = {
 async function saveProductToDB(product) {
     if (!_db.admin) return true;
     try {
-        const categoryId = CATEGORY_MAP[product.category] || 1;
-        const dbProduct = {
+        var categoryId = CATEGORY_MAP[product.category] || 1;
+        var dbProduct = {
             name: product.name,
             category_id: categoryId,
             price: product.price,
@@ -159,25 +144,25 @@ async function saveProductToDB(product) {
             stock: product.stock
         };
 
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 10000);
+        var controller = new AbortController();
+        var timer = setTimeout(function() { controller.abort(); }, 10000);
 
         if (product.dbId) {
-            const { data, error } = await _db.admin
+            var result = await _db.admin
                 .from('products')
                 .update(dbProduct)
                 .eq('id', product.dbId)
                 .select();
             clearTimeout(timer);
-            if (error) throw error;
+            if (result.error) throw result.error;
         } else {
-            const { data, error } = await _db.admin
+            var result = await _db.admin
                 .from('products')
                 .insert([dbProduct])
                 .select();
             clearTimeout(timer);
-            if (error) throw error;
-            if (data && data[0]) product.dbId = data[0].id;
+            if (result.error) throw result.error;
+            if (result.data && result.data[0]) product.dbId = result.data[0].id;
         }
         return true;
     } catch (err) {
@@ -189,14 +174,14 @@ async function saveProductToDB(product) {
 async function deleteProductFromDB(id) {
     if (!_db.admin) return true;
     try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 10000);
-        const { error } = await _db.admin
+        var controller = new AbortController();
+        var timer = setTimeout(function() { controller.abort(); }, 10000);
+        var result = await _db.admin
             .from('products')
             .delete()
             .eq('id', id);
         clearTimeout(timer);
-        if (error) throw error;
+        if (result.error) throw result.error;
         return true;
     } catch (err) {
         console.error('Error deleting product:', err);
@@ -207,14 +192,14 @@ async function deleteProductFromDB(id) {
 async function updateOrderStatusDB(id, status) {
     if (!_db.admin) return true;
     try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 10000);
-        const { error } = await _db.admin
+        var controller = new AbortController();
+        var timer = setTimeout(function() { controller.abort(); }, 10000);
+        var result = await _db.admin
             .from('orders')
             .update({ status: status })
             .eq('id', id);
         clearTimeout(timer);
-        if (error) throw error;
+        if (result.error) throw result.error;
         return true;
     } catch (err) {
         console.error('Error:', err);
@@ -222,15 +207,12 @@ async function updateOrderStatusDB(id, status) {
     }
 }
 
-// ============================================
-// REAL-TIME: Admin subscriptions
-// ============================================
 function setupAdminRealtime() {
     if (!_db.admin) return;
 
     _db.admin
         .channel('admin-products')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async function() {
             await fetchProducts();
             renderProductsTable();
             renderDashboard();
@@ -239,7 +221,7 @@ function setupAdminRealtime() {
 
     _db.admin
         .channel('admin-orders')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async () => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async function() {
             await fetchOrders();
             renderOrdersTable();
             renderDashboard();
@@ -247,11 +229,8 @@ function setupAdminRealtime() {
         .subscribe();
 }
 
-// ============================================
-// Login
-// ============================================
 function adminLogin() {
-    const v = document.getElementById('loginPassword').value;
+    var v = document.getElementById('loginPassword').value;
     if (v === getPass()) {
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('adminLayout').style.display = 'flex';
@@ -263,9 +242,9 @@ function adminLogin() {
 }
 
 async function changePassword() {
-    const current = document.getElementById('currentPassword').value;
-    const newPass = document.getElementById('newPassword').value.trim();
-    const confirmPass = document.getElementById('confirmPassword').value.trim();
+    var current = document.getElementById('currentPassword').value;
+    var newPass = document.getElementById('newPassword').value.trim();
+    var confirmPass = document.getElementById('confirmPassword').value.trim();
 
     if (current !== getPass()) {
         showToast('Mot de passe actuel incorrect!', 'error');
@@ -280,18 +259,17 @@ async function changePassword() {
         return;
     }
 
-    // Save to Supabase first
-    let savedToDb = false;
+    var savedToDb = false;
     if (_db.admin) {
         try {
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 10000);
-            const { data, error } = await _db.admin
+            var controller = new AbortController();
+            var timer = setTimeout(function() { controller.abort(); }, 10000);
+            var result = await _db.admin
                 .from('settings')
                 .upsert({ key: 'admin_pass', value: newPass }, { onConflict: 'key' })
                 .select();
             clearTimeout(timer);
-            if (error) throw error;
+            if (result.error) throw result.error;
             savedToDb = true;
         } catch (err) {
             console.error('Error saving password to Supabase:', err);
@@ -300,7 +278,6 @@ async function changePassword() {
         }
     }
 
-    // Only update locally if DB write succeeded
     if (savedToDb) {
         localStorage.setItem(PASS_KEY, newPass);
         adminPass = newPass;
@@ -314,7 +291,7 @@ async function changePassword() {
 
 async function initAdmin() {
     await fetchAdminPass();
-            await Promise.all([fetchProducts(), fetchOrders(), loadSettingsIntoForm(), loadCustomerOrders()]);
+    await Promise.all([fetchProducts(), fetchOrders(), loadSettingsIntoForm(), loadCustomerOrders()]);
     renderDashboard();
     renderProductsTable();
     renderOrdersTable();
@@ -322,10 +299,10 @@ async function initAdmin() {
 }
 
 function showSection(name) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+    document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
     document.getElementById('section-' + name).classList.add('active');
-    if (event && event.target) event.target.closest('.nav-item').classList.add('active');
+    if (typeof event !== 'undefined' && event && event.target) event.target.closest('.nav-item').classList.add('active');
     if (name === 'dashboard') renderDashboard();
     if (name === 'products') renderProductsTable();
     if (name === 'orders') renderOrdersTable();
@@ -334,29 +311,36 @@ function showSection(name) {
 }
 
 function getCatLabel(c) {
-    return { telephone:'Téléphone', ecran:'Écran', batterie:'Batterie', camera:'Caméra', boitier:'Boîtier', accessoire:'Accessoire', outils:'Outils', gaming:'Gaming' }[c] || c;
+    return { telephone: 'Téléphone', ecran: 'Écran', batterie: 'Batterie', camera: 'Caméra', boitier: 'Boîtier', accessoire: 'Accessoire', outils: 'Outils', gaming: 'Gaming' }[c] || c;
 }
 
 function renderDashboard() {
     document.getElementById('totalProducts').textContent = adminProducts.length;
     document.getElementById('totalOrders').textContent = orders.length;
-    document.getElementById('totalRevenue').textContent = orders.reduce((s, o) => s + o.total, 0).toLocaleString('fr-DZ');
+    document.getElementById('totalRevenue').textContent = orders.reduce(function(s, o) { return s + o.total; }, 0).toLocaleString('fr-DZ');
 
-    const tbody = document.getElementById('recentOrdersBody');
-    tbody.innerHTML = orders.length === 0 ? '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">Aucune commande</td></tr>' :
-        orders.slice(0, 5).map(o => `<tr><td>${o.id}</td><td>${o.customer}</td><td>${o.total.toLocaleString('fr-DZ')} DA</td><td><span class="order-status status-${o.status}">${{pending:'En attente',confirmed:'Confirmée',shipped:'Expédiée',delivered:'Livrée'}[o.status]}</span></td></tr>`).join('');
+    var tbody = document.getElementById('recentOrdersBody');
+    var statusLabels = { pending: 'En attente', confirmed: 'Confirmée', shipped: 'Expédiée', delivered: 'Livrée' };
+    tbody.innerHTML = orders.length === 0
+        ? '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">Aucune commande</td></tr>'
+        : orders.slice(0, 5).map(function(o) {
+            return '<tr><td>' + o.id + '</td><td>' + o.customer + '</td><td>' + o.total.toLocaleString('fr-DZ') + ' DA</td><td><span class="order-status status-' + o.status + '">' + (statusLabels[o.status] || o.status) + '</span></td></tr>';
+        }).join('');
 
-    const top = document.getElementById('topProductsList');
-    const tp = [...adminProducts].sort((a, b) => b.price - a.price).slice(0, 5);
-    top.innerHTML = tp.length === 0 ? '<p style="color:var(--text-muted);text-align:center;font-size:13px">Aucun produit</p>' :
-        tp.map((p, i) => `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light)"><span style="width:24px;height:24px;border-radius:6px;background:rgba(0,122,255,0.08);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">${i + 1}</span><div style="flex:1"><div style="font-size:13px;font-weight:500">${p.emoji} ${p.name}</div><div style="font-size:11px;color:var(--text-muted)">${p.stock}</div></div><div style="font-size:13px;font-weight:600;color:var(--accent)">${p.price.toLocaleString('fr-DZ')} DA</div></div>`).join('');
+    var top = document.getElementById('topProductsList');
+    var tp = adminProducts.slice().sort(function(a, b) { return b.price - a.price; }).slice(0, 5);
+    top.innerHTML = tp.length === 0
+        ? '<p style="color:var(--text-muted);text-align:center;font-size:13px">Aucun produit</p>'
+        : tp.map(function(p, i) {
+            return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light)"><span style="width:24px;height:24px;border-radius:6px;background:rgba(0,122,255,0.08);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">' + (i + 1) + '</span><div style="flex:1"><div style="font-size:13px;font-weight:500">' + p.emoji + ' ' + p.name + '</div><div style="font-size:11px;color:var(--text-muted)">' + p.stock + '</div></div><div style="font-size:13px;font-weight:600;color:var(--accent)">' + p.price.toLocaleString('fr-DZ') + ' DA</div></div>';
+        }).join('');
 }
 
 function renderProductsTable() {
-    const tbody = document.getElementById('productsTableBody');
-    const totalPages = Math.ceil(adminProducts.length / ITEMS_PER_PAGE);
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    const paginated = adminProducts.slice(start, start + ITEMS_PER_PAGE);
+    var tbody = document.getElementById('productsTableBody');
+    var totalPages = Math.ceil(adminProducts.length / ITEMS_PER_PAGE);
+    var start = (currentPage - 1) * ITEMS_PER_PAGE;
+    var paginated = adminProducts.slice(start, start + ITEMS_PER_PAGE);
 
     if (adminProducts.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px"><i class="fas fa-box-open" style="font-size:28px;margin-bottom:8px;display:block;opacity:0.4"></i>Aucun produit</td></tr>';
@@ -364,99 +348,107 @@ function renderProductsTable() {
         return;
     }
 
-    tbody.innerHTML = paginated.map(p => `<tr>
-        <td><input type="checkbox" class="product-checkbox" value="${p.id}" onchange="updateSelectedProducts()"></td>
-        <td>${p.id}</td>
-        <td><div class="product-cell"><div class="product-thumb">${p.image ? `<img src="${p.image}" alt="" loading="lazy">` : p.emoji}</div><span>${p.name}</span></div></td>
-        <td><span class="cat-badge cat-${p.category}">${getCatLabel(p.category)}</span></td>
-        <td><strong>${p.price.toLocaleString('fr-DZ')} DA</strong></td>
-        <td><span class="stock-badge">${p.stock}</span></td>
-        <td><div class="actions-cell"><button class="action-btn" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i></button><button class="action-btn delete" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button></div></td>
-    </tr>`).join('');
+    tbody.innerHTML = paginated.map(function(p) {
+        return '<tr>' +
+            '<td><input type="checkbox" class="product-checkbox" value="' + p.id + '" onchange="updateSelectedProducts()"></td>' +
+            '<td>' + p.id + '</td>' +
+            '<td><div class="product-cell"><div class="product-thumb">' + (p.image ? '<img src="' + p.image + '" alt="" loading="lazy">' : p.emoji) + '</div><span>' + p.name + '</span></div></td>' +
+            '<td><span class="cat-badge cat-' + p.category + '">' + getCatLabel(p.category) + '</span></td>' +
+            '<td><strong>' + p.price.toLocaleString('fr-DZ') + ' DA</strong></td>' +
+            '<td><span class="stock-badge">' + p.stock + '</span></td>' +
+            '<td><div class="actions-cell"><button class="action-btn" onclick="editProduct(' + p.id + ')"><i class="fas fa-edit"></i></button><button class="action-btn delete" onclick="deleteProduct(' + p.id + ')"><i class="fas fa-trash"></i></button></div></td>' +
+        '</tr>';
+    }).join('');
 
     renderPagination(totalPages);
 }
 
 function renderPagination(totalPages) {
-    const pag = document.getElementById('pagination');
+    var pag = document.getElementById('pagination');
     if (totalPages <= 1) { pag.innerHTML = ''; return; }
 
-    let html = '';
-    html += `<button class="page-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
+    var html = '';
+    html += '<button class="page-btn" onclick="goToPage(' + (currentPage - 1) + ')" ' + (currentPage === 1 ? 'disabled' : '') + '><i class="fas fa-chevron-left"></i></button>';
 
-    for (let i = 1; i <= totalPages; i++) {
+    for (var i = 1; i <= totalPages; i++) {
         if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-            html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+            html += '<button class="page-btn ' + (i === currentPage ? 'active' : '') + '" onclick="goToPage(' + i + ')">' + i + '</button>';
         } else if (i === currentPage - 3 || i === currentPage + 3) {
-            html += `<span class="page-dots">...</span>`;
+            html += '<span class="page-dots">...</span>';
         }
     }
 
-    html += `<button class="page-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
-    html += `<span class="page-info">${adminProducts.length} produit(s)</span>`;
+    html += '<button class="page-btn" onclick="goToPage(' + (currentPage + 1) + ')" ' + (currentPage === totalPages ? 'disabled' : '') + '><i class="fas fa-chevron-right"></i></button>';
+    html += '<span class="page-info">' + adminProducts.length + ' produit(s)</span>';
 
     pag.innerHTML = html;
 }
 
 function goToPage(page) {
-    const totalPages = Math.ceil(adminProducts.length / ITEMS_PER_PAGE);
+    var totalPages = Math.ceil(adminProducts.length / ITEMS_PER_PAGE);
     if (page < 1 || page > totalPages) return;
     currentPage = page;
     renderProductsTable();
 }
 
 function renderOrdersTable() {
-    const tbody = document.getElementById('ordersTableBody');
+    var tbody = document.getElementById('ordersTableBody');
+    var statusLabels = { pending: 'En attente', confirmed: 'Confirmée', shipped: 'Expédiée', delivered: 'Livrée' };
     if (orders.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px">Aucune commande</td></tr>';
         return;
     }
-    tbody.innerHTML = orders.map(o => `<tr>
-        <td>${o.id}</td><td>${o.customer}</td><td>${o.phone}</td>
-        <td><strong>${o.total.toLocaleString('fr-DZ')} DA</strong></td>
-        <td><span class="order-status status-${o.status}">${{pending:'En attente',confirmed:'Confirmée',shipped:'Expédiée',delivered:'Livrée'}[o.status]}</span></td>
-        <td>${o.date}</td>
-        <td><div class="actions-cell"><button class="action-btn" onclick="changeOrderStatus(${o.id})"><i class="fas fa-sync"></i></button></div></td>
-    </tr>`).join('');
+    tbody.innerHTML = orders.map(function(o) {
+        return '<tr>' +
+            '<td>' + o.id + '</td><td>' + o.customer + '</td><td>' + o.phone + '</td>' +
+            '<td><strong>' + o.total.toLocaleString('fr-DZ') + ' DA</strong></td>' +
+            '<td><span class="order-status status-' + o.status + '">' + (statusLabels[o.status] || o.status) + '</span></td>' +
+            '<td>' + o.date + '</td>' +
+            '<td><div class="actions-cell"><button class="action-btn" onclick="changeOrderStatus(' + o.id + ')"><i class="fas fa-sync"></i></button></div></td>' +
+        '</tr>';
+    }).join('');
 }
 
 function filterAdminProducts() {
-    const cat = document.getElementById('filterCategory').value;
-    const s = document.getElementById('adminSearch').value.toLowerCase();
-    let f = adminProducts;
-    if (cat !== 'all') f = f.filter(p => p.category === cat);
-    if (s) f = f.filter(p => p.name.toLowerCase().includes(s) || p.desc.toLowerCase().includes(s));
+    var cat = document.getElementById('filterCategory').value;
+    var s = document.getElementById('adminSearch').value.toLowerCase();
+    var f = adminProducts;
+    if (cat !== 'all') f = f.filter(function(p) { return p.category === cat; });
+    if (s) f = f.filter(function(p) { return p.name.toLowerCase().indexOf(s) !== -1 || p.desc.toLowerCase().indexOf(s) !== -1; });
 
     currentPage = 1;
 
-    const tbody = document.getElementById('productsTableBody');
+    var tbody = document.getElementById('productsTableBody');
+    var statusLabels = { pending: 'En attente', confirmed: 'Confirmée', shipped: 'Expédiée', delivered: 'Livrée' };
     if (f.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">Aucun résultat</td></tr>';
         document.getElementById('pagination').innerHTML = '';
         return;
     }
 
-    const totalPages = Math.ceil(f.length / ITEMS_PER_PAGE);
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    const paginated = f.slice(start, start + ITEMS_PER_PAGE);
+    var totalPages = Math.ceil(f.length / ITEMS_PER_PAGE);
+    var start = (currentPage - 1) * ITEMS_PER_PAGE;
+    var paginated = f.slice(start, start + ITEMS_PER_PAGE);
 
-    tbody.innerHTML = paginated.map(p => `<tr>
-        <td><input type="checkbox" class="product-checkbox" value="${p.id}" onchange="updateSelectedProducts()"></td>
-        <td>${p.id}</td>
-        <td><div class="product-cell"><div class="product-thumb">${p.image ? `<img src="${p.image}" alt="" loading="lazy">` : p.emoji}</div><span>${p.name}</span></div></td>
-        <td><span class="cat-badge cat-${p.category}">${getCatLabel(p.category)}</span></td>
-        <td><strong>${p.price.toLocaleString('fr-DZ')} DA</strong></td>
-        <td><span class="stock-badge">${p.stock}</span></td>
-        <td><div class="actions-cell"><button class="action-btn" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i></button><button class="action-btn delete" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button></div></td>
-    </tr>`).join('');
+    tbody.innerHTML = paginated.map(function(p) {
+        return '<tr>' +
+            '<td><input type="checkbox" class="product-checkbox" value="' + p.id + '" onchange="updateSelectedProducts()"></td>' +
+            '<td>' + p.id + '</td>' +
+            '<td><div class="product-cell"><div class="product-thumb">' + (p.image ? '<img src="' + p.image + '" alt="" loading="lazy">' : p.emoji) + '</div><span>' + p.name + '</span></div></td>' +
+            '<td><span class="cat-badge cat-' + p.category + '">' + getCatLabel(p.category) + '</span></td>' +
+            '<td><strong>' + p.price.toLocaleString('fr-DZ') + ' DA</strong></td>' +
+            '<td><span class="stock-badge">' + p.stock + '</span></td>' +
+            '<td><div class="actions-cell"><button class="action-btn" onclick="editProduct(' + p.id + ')"><i class="fas fa-edit"></i></button><button class="action-btn delete" onclick="deleteProduct(' + p.id + ')"><i class="fas fa-trash"></i></button></div></td>' +
+        '</tr>';
+    }).join('');
 
     renderPagination(totalPages);
 }
 
-function openProductModal(id = null) {
-    const m = document.getElementById('productModal');
+function openProductModal(id) {
+    var m = document.getElementById('productModal');
     if (id) {
-        const p = adminProducts.find(x => x.id === id);
+        var p = adminProducts.find(function(x) { return x.id === id; });
         document.getElementById('productModalTitle').textContent = 'Modifier';
         document.getElementById('editProductId').value = id;
         document.getElementById('prodName').value = p.name;
@@ -503,59 +495,49 @@ function openProductModal(id = null) {
 function closeProductModal() { document.getElementById('productModal').classList.remove('open'); }
 
 function previewImageUrl() {
-    const url = document.getElementById('prodImageUrl').value.trim();
-    const preview = document.getElementById('imagePreview');
+    var url = document.getElementById('prodImageUrl').value.trim();
+    var preview = document.getElementById('imagePreview');
     if (url) {
-        preview.innerHTML = `<img src="${url}" alt="" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-image\\' style=\\'font-size:32px;color:var(--text-muted)\\'></i>'">`;
+        preview.innerHTML = '<img src="' + url + '" alt="" onerror="this.parentElement.innerHTML=\'\'">';
     } else {
         preview.innerHTML = '';
     }
 }
 
 async function handleImageUpload(e) {
-    const file = e.target.files[0];
+    var file = e.target.files[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-        showToast('Image max 5MB', 'error');
-        return;
-    }
+    if (file.size > 5 * 1024 * 1024) { showToast('Image max 5MB', 'error'); return; }
+    if (!file.type.startsWith('image/')) { showToast('Fichier invalide', 'error'); return; }
 
-    if (!file.type.startsWith('image/')) {
-        showToast('Fichier invalide', 'error');
-        return;
-    }
-
-    const preview = document.getElementById('imagePreview');
-    const loader = document.getElementById('uploadLoader');
+    var preview = document.getElementById('imagePreview');
+    var loader = document.getElementById('uploadLoader');
     loader.style.display = 'block';
     loader.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Upload en cours...';
 
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-        preview.innerHTML = `<img src="${ev.target.result}" alt="">`;
-    };
+    var reader = new FileReader();
+    reader.onload = function(ev) { preview.innerHTML = '<img src="' + ev.target.result + '" alt="">'; };
     reader.readAsDataURL(file);
 
     try {
-        const formData = new FormData();
+        var formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_PRESET);
 
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
-            method: 'POST',
-            body: formData
+        var res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD + '/image/upload', {
+            method: 'POST', body: formData
         });
 
-        const data = await res.json();
+        var data = await res.json();
         loader.style.display = 'none';
 
         if (data.secure_url) {
             document.getElementById('prodImageUrl').value = data.secure_url;
-            preview.innerHTML = `<img src="${data.secure_url}" alt="">`;
+            preview.innerHTML = '<img src="' + data.secure_url + '" alt="">';
             showToast('Image uploadée!', 'success');
         } else {
-            const errMsg = data.error?.message || JSON.stringify(data);
+            var errMsg = (data.error && data.error.message) || JSON.stringify(data);
             console.error('[Upload]', errMsg);
             showToast('Erreur: ' + errMsg, 'error');
             preview.innerHTML = '';
@@ -568,99 +550,99 @@ async function handleImageUpload(e) {
 }
 
 async function handleImageUpload2(e) {
-    const file = e.target.files[0];
+    var file = e.target.files[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) { showToast('Image max 5MB', 'error'); return; }
-    const preview = document.getElementById('imagePreview2');
-    const loader = document.getElementById('uploadLoader2');
+    var preview = document.getElementById('imagePreview2');
+    var loader = document.getElementById('uploadLoader2');
     loader.style.display = 'block';
-    const reader = new FileReader();
-    reader.onload = function(ev) { preview.innerHTML = `<img src="${ev.target.result}" alt="">`; };
+    var reader = new FileReader();
+    reader.onload = function(ev) { preview.innerHTML = '<img src="' + ev.target.result + '" alt="">'; };
     reader.readAsDataURL(file);
     try {
-        const formData = new FormData();
+        var formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_PRESET);
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: 'POST', body: formData });
-        const data = await res.json();
+        var res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD + '/image/upload', { method: 'POST', body: formData });
+        var data = await res.json();
         loader.style.display = 'none';
         if (data.secure_url) {
             document.getElementById('prodImageUrl2').value = data.secure_url;
-            preview.innerHTML = `<img src="${data.secure_url}" alt="">`;
+            preview.innerHTML = '<img src="' + data.secure_url + '" alt="">';
             showToast('Image 2 uploadée!', 'success');
         } else { showToast('Erreur upload', 'error'); preview.innerHTML = ''; }
     } catch (err) { loader.style.display = 'none'; showToast('Erreur réseau', 'error'); }
 }
 
 async function handleImageUpload3(e) {
-    const file = e.target.files[0];
+    var file = e.target.files[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) { showToast('Image max 5MB', 'error'); return; }
-    const preview = document.getElementById('imagePreview3');
-    const loader = document.getElementById('uploadLoader3');
+    var preview = document.getElementById('imagePreview3');
+    var loader = document.getElementById('uploadLoader3');
     loader.style.display = 'block';
-    const reader = new FileReader();
-    reader.onload = function(ev) { preview.innerHTML = `<img src="${ev.target.result}" alt="">`; };
+    var reader = new FileReader();
+    reader.onload = function(ev) { preview.innerHTML = '<img src="' + ev.target.result + '" alt="">'; };
     reader.readAsDataURL(file);
     try {
-        const formData = new FormData();
+        var formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_PRESET);
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: 'POST', body: formData });
-        const data = await res.json();
+        var res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD + '/image/upload', { method: 'POST', body: formData });
+        var data = await res.json();
         loader.style.display = 'none';
         if (data.secure_url) {
             document.getElementById('prodImageUrl3').value = data.secure_url;
-            preview.innerHTML = `<img src="${data.secure_url}" alt="">`;
+            preview.innerHTML = '<img src="' + data.secure_url + '" alt="">';
             showToast('Image 3 uploadée!', 'success');
         } else { showToast('Erreur upload', 'error'); preview.innerHTML = ''; }
     } catch (err) { loader.style.display = 'none'; showToast('Erreur réseau', 'error'); }
 }
 
 function previewImageUrl2() {
-    const url = document.getElementById('prodImageUrl2').value.trim();
-    const preview = document.getElementById('imagePreview2');
-    if (url) preview.innerHTML = `<img src="${url}" alt="" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-image\\' style=\\'font-size:32px;color:var(--text-muted)\\'></i>'">`;
+    var url = document.getElementById('prodImageUrl2').value.trim();
+    var preview = document.getElementById('imagePreview2');
+    if (url) preview.innerHTML = '<img src="' + url + '" alt="" onerror="this.parentElement.innerHTML=\'\'">';
     else preview.innerHTML = '';
 }
 
 function previewImageUrl3() {
-    const url = document.getElementById('prodImageUrl3').value.trim();
-    const preview = document.getElementById('imagePreview3');
-    if (url) preview.innerHTML = `<img src="${url}" alt="" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-image\\' style=\\'font-size:32px;color:var(--text-muted)\\'></i>'">`;
+    var url = document.getElementById('prodImageUrl3').value.trim();
+    var preview = document.getElementById('imagePreview3');
+    if (url) preview.innerHTML = '<img src="' + url + '" alt="" onerror="this.parentElement.innerHTML=\'\'">';
     else preview.innerHTML = '';
 }
 
 async function saveProduct() {
-    const id = document.getElementById('editProductId').value;
-    const name = document.getElementById('prodName').value.trim();
-    const category = document.getElementById('prodCategory').value;
-    const price = parseInt(document.getElementById('prodPrice').value);
-    const oldPrice = parseInt(document.getElementById('prodOldPrice').value) || null;
-    const emoji = document.getElementById('prodEmoji').value || '📱';
-    const badge = document.getElementById('prodBadge').value || null;
-    const desc = document.getElementById('prodDesc').value.trim();
-    const image = document.getElementById('prodImageUrl').value.trim() || null;
-    const image2 = document.getElementById('prodImageUrl2') ? document.getElementById('prodImageUrl2').value.trim() || null : null;
-    const image3 = document.getElementById('prodImageUrl3') ? document.getElementById('prodImageUrl3').value.trim() || null : null;
+    var id = document.getElementById('editProductId').value;
+    var name = document.getElementById('prodName').value.trim();
+    var category = document.getElementById('prodCategory').value;
+    var price = parseInt(document.getElementById('prodPrice').value);
+    var oldPrice = parseInt(document.getElementById('prodOldPrice').value) || null;
+    var emoji = document.getElementById('prodEmoji').value || '📱';
+    var badge = document.getElementById('prodBadge').value || null;
+    var desc = document.getElementById('prodDesc').value.trim();
+    var image = document.getElementById('prodImageUrl').value.trim() || null;
+    var image2 = document.getElementById('prodImageUrl2') ? document.getElementById('prodImageUrl2').value.trim() || null : null;
+    var image3 = document.getElementById('prodImageUrl3') ? document.getElementById('prodImageUrl3').value.trim() || null : null;
 
     if (!name || !price) { showToast('Remplissez les champs obligatoires', 'error'); return; }
 
-    const product = { name, category, price, oldPrice, emoji, badge, desc, image, image2, image3, stock: "En stock" };
+    var product = { name: name, category: category, price: price, oldPrice: oldPrice, emoji: emoji, badge: badge, desc: desc, image: image, image2: image2, image3: image3, stock: 'En stock' };
 
     if (id) {
-        const existing = adminProducts.find(x => x.id === parseInt(id));
+        var existing = adminProducts.find(function(x) { return x.id === parseInt(id); });
         if (existing) {
             product.dbId = existing.dbId || existing.id;
             Object.assign(existing, product);
         }
     } else {
-        const newId = adminProducts.length > 0 ? Math.max(...adminProducts.map(p => p.id)) + 1 : 1;
+        var newId = adminProducts.length > 0 ? Math.max.apply(null, adminProducts.map(function(p) { return p.id; })) + 1 : 1;
         product.id = newId;
         adminProducts.push(product);
     }
 
-    const saved = await saveProductToDB(product);
+    var saved = await saveProductToDB(product);
     if (saved) {
         showToast(id ? 'Produit modifié!' : 'Produit ajouté!', 'success');
     } else {
@@ -675,9 +657,9 @@ function editProduct(id) { openProductModal(id); }
 async function deleteProduct(id) {
     if (!confirm('Supprimer?')) return;
 
-    const deleted = await deleteProductFromDB(id);
+    var deleted = await deleteProductFromDB(id);
     if (deleted) {
-        adminProducts = adminProducts.filter(p => p.id !== id);
+        adminProducts = adminProducts.filter(function(p) { return p.id !== id; });
         saveProducts(); renderProductsTable(); renderDashboard();
         showToast('Supprimé', 'success');
     } else {
@@ -686,46 +668,47 @@ async function deleteProduct(id) {
 }
 
 function updateSelectedProducts() {
-    selectedProducts = Array.from(document.querySelectorAll('.product-checkbox:checked')).map(cb => parseInt(cb.value));
+    selectedProducts = Array.from(document.querySelectorAll('.product-checkbox:checked')).map(function(cb) { return parseInt(cb.value); });
     document.getElementById('deleteSelectedBtn').style.display = selectedProducts.length > 0 ? 'inline-flex' : 'none';
 }
 
 function toggleSelectAll() {
-    const c = document.getElementById('selectAll').checked;
-    document.querySelectorAll('.product-checkbox').forEach(cb => cb.checked = c);
+    var c = document.getElementById('selectAll').checked;
+    document.querySelectorAll('.product-checkbox').forEach(function(cb) { cb.checked = c; });
     updateSelectedProducts();
 }
 
 async function deleteSelected() {
-    if (!confirm(`Supprimer ${selectedProducts.length} produit(s)?`)) return;
-    for (const id of selectedProducts) {
-        await deleteProductFromDB(id);
+    if (!confirm('Supprimer ' + selectedProducts.length + ' produit(s)?')) return;
+    for (var i = 0; i < selectedProducts.length; i++) {
+        await deleteProductFromDB(selectedProducts[i]);
     }
-    adminProducts = adminProducts.filter(p => !selectedProducts.includes(p.id));
+    adminProducts = adminProducts.filter(function(p) { return selectedProducts.indexOf(p.id) === -1; });
     saveProducts(); renderProductsTable(); renderDashboard();
     selectedProducts = []; document.getElementById('deleteSelectedBtn').style.display = 'none';
     showToast('Supprimés', 'success');
 }
 
 async function changeOrderStatus(id) {
-    const o = orders.find(x => x.id === id);
+    var o = orders.find(function(x) { return x.id === id; });
     if (!o) return;
-    const s = ['pending', 'confirmed', 'shipped', 'delivered'];
-    const newStatus = s[(s.indexOf(o.status) + 1) % s.length];
+    var s = ['pending', 'confirmed', 'shipped', 'delivered'];
+    var newStatus = s[(s.indexOf(o.status) + 1) % s.length];
 
     await updateOrderStatusDB(id, newStatus);
     o.status = newStatus;
 
     renderOrdersTable(); renderDashboard();
-    showToast('Statut: ' + {pending:'En attente',confirmed:'Confirmée',shipped:'Expédiée',delivered:'Livrée'}[o.status], 'success');
+    var statusLabels = { pending: 'En attente', confirmed: 'Confirmée', shipped: 'Expédiée', delivered: 'Livrée' };
+    showToast('Statut: ' + (statusLabels[o.status] || o.status), 'success');
 }
 
-function saveProducts() { localStorage.setItem('ipstore25_products', JSON.stringify(adminProducts)); }
+function saveProducts() { localStorage.setItem('nassimmobile_products', JSON.stringify(adminProducts)); }
 
 async function saveSettings() {
-    const name = document.getElementById('storeName').value.trim();
-    const email = document.getElementById('storeEmail').value.trim();
-    const phone = document.getElementById('storePhone').value.trim();
+    var name = document.getElementById('storeName').value.trim();
+    var email = document.getElementById('storeEmail').value.trim();
+    var phone = document.getElementById('storePhone').value.trim();
 
     if (!_db.admin) {
         showToast('Pas de connexion DB', 'error');
@@ -733,20 +716,20 @@ async function saveSettings() {
     }
 
     try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 10000);
+        var controller = new AbortController();
+        var timer = setTimeout(function() { controller.abort(); }, 10000);
 
-        const updates = [
+        var updates = [
             _db.admin.from('settings').upsert({ key: 'store_name', value: name }, { onConflict: 'key' }),
             _db.admin.from('settings').upsert({ key: 'store_email', value: email }, { onConflict: 'key' }),
             _db.admin.from('settings').upsert({ key: 'store_phone', value: phone }, { onConflict: 'key' })
         ];
 
-        const results = await Promise.all(updates);
+        var results = await Promise.all(updates);
         clearTimeout(timer);
 
-        const hasError = results.some(r => r.error);
-        if (hasError) throw results.find(r => r.error).error;
+        var hasError = results.some(function(r) { return r.error; });
+        if (hasError) throw results.find(function(r) { return r.error; }).error;
 
         showToast('Paramètres enregistrés!', 'success');
     } catch (err) {
@@ -758,10 +741,10 @@ async function saveSettings() {
 async function loadSettingsIntoForm() {
     if (!_db.admin) return;
     try {
-        const { data, error } = await _db.admin.from('settings').select('key, value').in('key', ['store_name', 'store_email', 'store_phone']);
-        if (error) throw error;
-        if (data) {
-            data.forEach(s => {
+        var result = await _db.admin.from('settings').select('key, value').in('key', ['store_name', 'store_email', 'store_phone']);
+        if (result.error) throw result.error;
+        if (result.data) {
+            result.data.forEach(function(s) {
                 if (s.key === 'store_name' && s.value) document.getElementById('storeName').value = s.value;
                 if (s.key === 'store_email' && s.value) document.getElementById('storeEmail').value = s.value;
                 if (s.key === 'store_phone' && s.value) document.getElementById('storePhone').value = s.value;
@@ -773,22 +756,24 @@ async function loadSettingsIntoForm() {
 }
 
 function exportData() {
-    const d = { products: adminProducts, orders, settings: { password: getPass() }, date: new Date().toISOString() };
-    const b = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(b); a.download = `ipstore25-backup-${new Date().toISOString().slice(0, 10)}.json`; a.click();
+    var d = { products: adminProducts, orders: orders, settings: { password: getPass() }, date: new Date().toISOString() };
+    var b = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(b);
+    a.download = 'nassimmobile-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
     showToast('Exporté!', 'success');
 }
 
 function importData(e) {
-    const f = e.target.files[0];
+    var f = e.target.files[0];
     if (!f) return;
-    const r = new FileReader();
+    var r = new FileReader();
     r.onload = function(ev) {
         try {
-            const d = JSON.parse(ev.target.result);
+            var d = JSON.parse(ev.target.result);
             if (d.products) { adminProducts = d.products; saveProducts(); }
-            if (d.orders) { orders = d.orders; localStorage.setItem('ipstore25_orders', JSON.stringify(orders)); }
+            if (d.orders) { orders = d.orders; localStorage.setItem('nassimmobile_orders', JSON.stringify(orders)); }
             if (d.settings && d.settings.password) { localStorage.setItem(PASS_KEY, d.settings.password); adminPass = d.settings.password; }
             renderProductsTable(); renderOrdersTable(); renderDashboard();
             showToast('Importé!', 'success');
@@ -799,26 +784,27 @@ function importData(e) {
 
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 
-function showToast(msg, type = 'success') {
-    const c = document.getElementById('toastContainer');
-    const t = document.createElement('div');
-    t.className = `toast ${type}`;
-    t.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
+function showToast(msg, type) {
+    type = type || 'success';
+    var c = document.getElementById('toastContainer');
+    var t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + '"></i> ' + msg;
     c.appendChild(t);
-    setTimeout(() => t.remove(), 3000);
+    setTimeout(function() { t.remove(); }, 3000);
 }
 
-let customerOrders = [];
+var customerOrders = [];
 
 async function loadCustomerOrders() {
     if (!_db.admin) return;
     try {
-        const { data, error } = await _db.admin
+        var result = await _db.admin
             .from('customer_orders')
             .select('*')
             .order('created_at', { ascending: false });
-        if (error) throw error;
-        customerOrders = data || [];
+        if (result.error) throw result.error;
+        customerOrders = result.data || [];
         renderCustomerOrders();
     } catch (err) {
         console.error('Error loading customer orders:', err);
@@ -826,35 +812,39 @@ async function loadCustomerOrders() {
 }
 
 function renderCustomerOrders() {
-    const tbody = document.getElementById('customerOrdersBody');
+    var tbody = document.getElementById('customerOrdersBody');
     if (!tbody) return;
+    var statusLabels = { pending: 'En attente', confirmed: 'Confirmée', shipped: 'Expédiée', delivered: 'Livrée' };
     if (customerOrders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px">Aucune commande client</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:40px">Aucune commande client</td></tr>';
         return;
     }
-    tbody.innerHTML = customerOrders.map(o => `<tr>
-        <td>${o.id}</td>
-        <td>${o.customer_name || '-'}</td>
-        <td>${o.customer_phone || '-'}</td>
-        <td>${o.customer_email || '-'}</td>
-        <td>${o.customer_city || '-'}</td>
-        <td><strong>${parseFloat(o.total || 0).toLocaleString('fr-DZ')} DA</strong></td>
-        <td><span class="order-status status-${o.status || 'pending'}">${{pending:'En attente',confirmed:'Confirmée',shipped:'Expédiée',delivered:'Livrée'}[o.status || 'pending']}</span></td>
-        <td>${o.created_at ? new Date(o.created_at).toLocaleDateString('fr-DZ') : '-'}</td>
-        <td><button class="action-btn" onclick="changeCustomerOrderStatus(${o.id})"><i class="fas fa-sync"></i></button></td>
-    </tr>`).join('');
+    tbody.innerHTML = customerOrders.map(function(o) {
+        var st = o.status || 'pending';
+        return '<tr>' +
+            '<td>' + o.id + '</td>' +
+            '<td>' + (o.customer_name || '-') + '</td>' +
+            '<td>' + (o.customer_phone || '-') + '</td>' +
+            '<td>' + (o.customer_email || '-') + '</td>' +
+            '<td>' + (o.customer_city || '-') + '</td>' +
+            '<td><strong>' + parseFloat(o.total || 0).toLocaleString('fr-DZ') + ' DA</strong></td>' +
+            '<td><span class="order-status status-' + st + '">' + (statusLabels[st] || st) + '</span></td>' +
+            '<td>' + (o.created_at ? new Date(o.created_at).toLocaleDateString('fr-DZ') : '-') + '</td>' +
+            '<td><button class="action-btn" onclick="changeCustomerOrderStatus(' + o.id + ')"><i class="fas fa-sync"></i></button></td>' +
+        '</tr>';
+    }).join('');
 }
 
 async function changeCustomerOrderStatus(id) {
-    const statuses = ['pending', 'confirmed', 'shipped', 'delivered'];
-    const o = customerOrders.find(x => x.id === id);
+    var statuses = ['pending', 'confirmed', 'shipped', 'delivered'];
+    var o = customerOrders.find(function(x) { return x.id === id; });
     if (!o) return;
-    const current = statuses.indexOf(o.status || 'pending');
-    const next = statuses[(current + 1) % statuses.length];
+    var current = statuses.indexOf(o.status || 'pending');
+    var next = statuses[(current + 1) % statuses.length];
     if (!_db.admin) return;
     try {
-        const { error } = await _db.admin.from('customer_orders').update({ status: next }).eq('id', id);
-        if (error) throw error;
+        var result = await _db.admin.from('customer_orders').update({ status: next }).eq('id', id);
+        if (result.error) throw result.error;
         o.status = next;
         renderCustomerOrders();
         showToast('Statut mis à jour', 'success');
